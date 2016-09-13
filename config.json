@@ -1,0 +1,9 @@
+{
+	"servers": [
+		{"url": "https://apple.com"},
+		{"url": "https://google.com"},
+		{"url": "https://github.com"},
+		{"url": "http://cnn.com"},
+		{"host": "reddit.com", "port": 80}
+	]
+}
