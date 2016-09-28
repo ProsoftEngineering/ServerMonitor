@@ -1,5 +1,5 @@
 #include <Foundation/Foundation.h>
-#include <iostream>
+#include <string>
 
 bool UrlDownload(const std::string& url, double timeout, std::string& errorMessage) {
     NSURL *nsurl = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
