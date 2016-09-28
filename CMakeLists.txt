@@ -3,7 +3,6 @@ project(ServerMonitor)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
-  src/url_apple.mm
 )
 
 if(MSVC)
@@ -16,5 +15,6 @@ else()
 endif()
 
 if(APPLE)
+  target_sources(${PROJECT_NAME} PRIVATE src/url_apple.mm)
   set_source_files_properties(src/url_apple.mm PROPERTIES COMPILE_FLAGS -fobjc-arc)
 endif()
