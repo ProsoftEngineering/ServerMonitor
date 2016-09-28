@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -13,7 +14,7 @@ public:
         return result;
     }
 
-    const std::string& errorMessage() {
+    const std::string& errorMessage() const {
         return errorMessage_;
     }
     
@@ -118,17 +119,40 @@ private:
     const unsigned timeout_;
 };
 
+class Server {
+public:
+    Server(const std::string& name, const std::shared_ptr<Monitor>& monitor)
+        : name_(name)
+        , monitor_(monitor)
+    {
+    }
+
+    const std::string& name() const {
+        return name_;
+    }
+    
+    const std::shared_ptr<Monitor>& monitor() const {
+        return monitor_;
+    }
+private:
+    const std::string name_;
+    const std::shared_ptr<Monitor> monitor_;
+};
+
 class ServerMonitor {
 public:
     
     bool run() {
         const unsigned timeout = 5;
         
-        WebsiteMonitor wm("https://www.apple.com", timeout);
-        printf("RUN1: %d: %s\n", wm.run(), wm.errorMessage().c_str());
+        std::vector<Server> servers;
+        servers.emplace_back("Apple Website", std::make_shared<WebsiteMonitor>("https://www.apple.com", timeout));
+        servers.emplace_back("Apple HTTPS", std::make_shared<ServiceMonitor>("apple.com", 443, timeout));
         
-        ServiceMonitor sm("apple.com", 443, timeout);
-        printf("RUN2: %d: %s\n", sm.run(), sm.errorMessage().c_str());
+        for (auto& server : servers) {
+            auto monitor = server.monitor();
+            printf("%s: %d: %s\n", server.name().c_str(), monitor->run(), monitor->errorMessage().c_str());
+        }
         
         return true;
     }
