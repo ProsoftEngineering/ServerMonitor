@@ -25,25 +25,25 @@ protected:
 
 class WebsiteMonitor : public Monitor {
 public:
-    WebsiteMonitor(const std::string& url, double timeout)
+    WebsiteMonitor(const std::string& url, unsigned timeout)
         : url_(url)
         , timeout_(timeout)
     {
     }
     
     virtual bool execute() override {
-        extern bool UrlDownload(const std::string& url, double timeout, std::string& errorMessage);
+        extern bool UrlDownload(const std::string& url, unsigned timeout, std::string& errorMessage);
         return UrlDownload(url_, timeout_, errorMessage_);
     }
     
 private:
     const std::string url_;
-    const double timeout_;
+    const unsigned timeout_;
 };
 
 class ServiceMonitor : public Monitor {
 public:
-    ServiceMonitor(const std::string& host, unsigned port, double timeout)
+    ServiceMonitor(const std::string& host, unsigned port, unsigned timeout)
         : host_(host)
         , port_(std::to_string(port))
         , timeout_(timeout)
@@ -115,14 +115,14 @@ public:
 private:
     const std::string host_;
     const std::string port_;
-    const double timeout_;
+    const unsigned timeout_;
 };
 
 class ServerMonitor {
 public:
     
     bool run() {
-        const double timeout = 5.0;
+        const unsigned timeout = 5;
         
         WebsiteMonitor wm("https://www.apple.com", timeout);
         printf("RUN1: %d: %s\n", wm.run(), wm.errorMessage().c_str());

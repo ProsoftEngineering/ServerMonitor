@@ -1,7 +1,7 @@
 #include <Foundation/Foundation.h>
 #include <string>
 
-bool UrlDownload(const std::string& url, double timeout, std::string& errorMessage) {
+bool UrlDownload(const std::string& url, unsigned timeout, std::string& errorMessage) {
     NSURL *nsurl = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:nsurl cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:timeout];
