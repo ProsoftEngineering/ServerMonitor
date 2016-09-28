@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <vector>
 
@@ -7,10 +8,31 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+class ElapsedTime {
+public:
+    void start() {
+        start_ = std::chrono::high_resolution_clock::now();
+    }
+
+    void stop() {
+        const auto end = std::chrono::high_resolution_clock::now();
+        duration_ = static_cast<unsigned>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start_).count());
+    }
+
+    unsigned duration() const {
+        return duration_;
+    }
+private:
+    std::chrono::high_resolution_clock::time_point start_;
+    unsigned duration_;
+};
+
 class Monitor {
 public:
     bool run() {
+        elapsedTime_.start();
         const bool result = execute();
+        elapsedTime_.stop();
         return result;
     }
 
@@ -18,10 +40,17 @@ public:
         return errorMessage_;
     }
     
+    unsigned duration() const {
+        return elapsedTime_.duration();
+    }
+    
 protected:
     virtual bool execute() = 0;
     
     std::string errorMessage_;
+    
+private:
+    ElapsedTime elapsedTime_;
 };
 
 class WebsiteMonitor : public Monitor {
@@ -149,10 +178,17 @@ public:
         servers.emplace_back("Apple Website", std::make_shared<WebsiteMonitor>("https://www.apple.com", timeout));
         servers.emplace_back("Apple HTTPS", std::make_shared<ServiceMonitor>("apple.com", 443, timeout));
         
+        ElapsedTime elapsedTime;
+        
+        elapsedTime.start();
+        
         for (auto& server : servers) {
             auto monitor = server.monitor();
-            printf("%s: %d: %s\n", server.name().c_str(), monitor->run(), monitor->errorMessage().c_str());
+            printf("%s: %d: %s (%u ms)\n", server.name().c_str(), monitor->run(), monitor->errorMessage().c_str(), monitor->duration());
         }
+        
+        elapsedTime.stop();
+        printf("Total time: %u ms\n", elapsedTime.duration());
         
         return true;
     }
