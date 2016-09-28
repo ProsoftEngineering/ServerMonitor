@@ -1,4 +1,5 @@
 #include <chrono>
+#include <future>
 #include <iostream>
 #include <vector>
 
@@ -163,9 +164,18 @@ public:
     const std::shared_ptr<Monitor>& monitor() const {
         return monitor_;
     }
+    
+    void setResult(bool result) {
+        result_ = result;
+    }
+    
+    bool result() const {
+        return result_;
+    }
 private:
     const std::string name_;
     const std::shared_ptr<Monitor> monitor_;
+    bool result_;
 };
 
 class ServerMonitor {
@@ -175,19 +185,33 @@ public:
         const unsigned timeout = 5;
         
         std::vector<Server> servers;
-        servers.emplace_back("Apple Website", std::make_shared<WebsiteMonitor>("https://www.apple.com", timeout));
-        servers.emplace_back("Apple HTTPS", std::make_shared<ServiceMonitor>("apple.com", 443, timeout));
+        servers.emplace_back("Apple Website", std::make_shared<WebsiteMonitor>("http://www.apple.com", timeout));
+        servers.emplace_back("Apple Secure Website", std::make_shared<WebsiteMonitor>("https://www.apple.com", timeout));
+        servers.emplace_back("Apple SSL", std::make_shared<ServiceMonitor>("apple.com", 443, timeout));
         
+        std::vector<std::future<void>> futures;
+
         ElapsedTime elapsedTime;
         
         elapsedTime.start();
         
         for (auto& server : servers) {
-            auto monitor = server.monitor();
-            printf("%s: %d: %s (%u ms)\n", server.name().c_str(), monitor->run(), monitor->errorMessage().c_str(), monitor->duration());
+            futures.push_back(std::async(std::launch::async, [&server](){
+                server.setResult(server.monitor()->run());
+            }));
+        }
+        
+        for (auto& future : futures) {
+            future.get();
         }
         
         elapsedTime.stop();
+
+        for (const auto& server : servers) {
+            auto monitor = server.monitor();
+            printf("%s: %d: %s (%u ms)\n", server.name().c_str(), server.result(), monitor->errorMessage().c_str(), monitor->duration());
+        }
+        
         printf("Total time: %u ms\n", elapsedTime.duration());
         
         return true;
