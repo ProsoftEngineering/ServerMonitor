@@ -14,3 +14,7 @@ else()
     -Werror
   )
 endif()
+
+if(APPLE)
+  set_source_files_properties(src/url_apple.mm PROPERTIES COMPILE_FLAGS -fobjc-arc)
+endif()
