@@ -8,7 +8,7 @@ bool UrlDownload(const std::string& url, double timeout, std::string& errorMessa
     request.HTTPMethod = @"HEAD";
     __block bool success = false;
     __block bool done = false;
-    NSURLSessionDataTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data __unused, NSURLResponse *response, NSError *error) {
+    void (^handler)(NSData *, NSURLResponse *, NSError *) = ^(NSData *data __unused, NSURLResponse *response, NSError *error) {
         if (error) {
             errorMessage.assign(error.localizedDescription.UTF8String);
         } else {
@@ -21,8 +21,8 @@ bool UrlDownload(const std::string& url, double timeout, std::string& errorMessa
             }
         }
         done = true;
-    }];
-    [task resume];
+    };
+    [[session dataTaskWithRequest:request completionHandler:handler] resume];
     while (!done) {
         [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
     }
