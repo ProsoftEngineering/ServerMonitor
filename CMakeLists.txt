@@ -11,6 +11,7 @@ else()
     -Wall
     -Wextra
     -Werror
+    -std=c++14
   )
 endif()
 
