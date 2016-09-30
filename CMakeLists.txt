@@ -24,3 +24,7 @@ elseif(UNIX)
   target_include_directories(${PROJECT_NAME} PRIVATE ${CURL_INCLUDE_DIRS})
   target_sources(${PROJECT_NAME} PRIVATE src/http_curl.cpp)
 endif()
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+  vendor/json/src
+)

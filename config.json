@@ -1,9 +1,9 @@
 {
 	"servers": [
-		{"url": "https://apple.com"},
-		{"url": "https://google.com"},
-		{"url": "https://github.com"},
-		{"url": "http://cnn.com"},
-		{"host": "reddit.com", "port": 80}
+		{"name": "Apple Website", "url": "http://apple.com"},
+		{"name": "Apple Secure Website", "url": "https://apple.com"},
+		{"name": "Apple SSL", "host": "apple.com", "port": 443},
+		{"name": "Google", "url": "https://apple.com"},
+		{"name": "GitHub", "host": "github.com", "port": 80}
 	]
 }

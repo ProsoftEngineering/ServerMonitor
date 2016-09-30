@@ -1,6 +1,7 @@
 #include <chrono>
 #include <future>
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 #include <sys/types.h>
@@ -8,6 +9,10 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 class ElapsedTime {
 public:
@@ -189,14 +194,31 @@ private:
 
 class ServerMonitor {
 public:
+    ServerMonitor(const json& config)
+        : config_(config)
+    {
+    }
     
     bool run() {
         const unsigned timeout = 5;
         
         std::vector<Server> servers;
-        servers.emplace_back("Apple Website", std::make_unique<WebsiteMonitor>("http://www.apple.com", timeout));
-        servers.emplace_back("Apple Secure Website", std::make_unique<WebsiteMonitor>("https://www.apple.com", timeout));
-        servers.emplace_back("Apple SSL", std::make_unique<ServiceMonitor>("apple.com", 443, timeout));
+        for (const json& server : config_["servers"]) {
+            const auto name = server["name"].get<std::string>();
+            const auto end = server.end();
+            
+            const auto url = server.find("url");
+            if (url != end) {
+                servers.emplace_back(name, std::make_unique<WebsiteMonitor>(url->get<std::string>(), timeout));
+                continue;
+            }
+            
+            const auto host = server.find("host");
+            const auto port = server.find("port");
+            if (host != end && port != end) {
+                servers.emplace_back(name, std::make_unique<ServiceMonitor>(host->get<std::string>(), port->get<unsigned>(), timeout));
+            }
+        }
         
         std::vector<std::future<void>> futures;
 
@@ -226,9 +248,30 @@ public:
         return true;
     }
     
+private:
+    const json config_;
 };
 
-int main() {
-    ServerMonitor mon;
+int main(int argc, const char * argv[]) {
+    if (argc != 2) {
+        printf("Missing config arg\n");
+        return EXIT_FAILURE;
+    }
+    
+    json config;
+
+    try {
+        std::ifstream filestream(argv[1]);
+        if (!filestream.is_open()) {
+            printf("Invalid file: %s\n", argv[1]);
+            return EXIT_FAILURE;
+        }
+        filestream >> config;
+    } catch (const std::exception& ex) {
+        std::cout << "ERROR: JSON invalid (" << ex.what() << ")" << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    ServerMonitor mon(config);
     return mon.run() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
