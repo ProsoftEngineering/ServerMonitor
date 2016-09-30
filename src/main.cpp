@@ -260,10 +260,15 @@ public:
 
         for (const auto& server : servers) {
             const auto& monitor = server.monitor();
-            printf("%s: %d: %s (%u ms)\n", server.name().c_str(), server.result(), monitor->errorMessage().c_str(), monitor->duration());
+            if (server.result()) {
+                std::cout << server.name() << ": UP";
+            } else {
+                std::cout << server.name() << ": DOWN - " << monitor->errorMessage();
+            }
+            std::cout << " (" << monitor->duration() << " ms)" << std::endl;
         }
         
-        printf("Total time: %u ms\n", elapsedTime.duration());
+        std::cout << "Total time: " << elapsedTime.duration() << " ms" << std::endl;
     }
     
 private:
