@@ -200,22 +200,29 @@ public:
     }
     
     void run() {
-        const unsigned timeout = 5;
+        const auto config_end = config_.end();
+        
+        unsigned timeout = 5;
+        const auto timeout_iter = config_.find("timeout");
+        if (timeout_iter != config_end) {
+            timeout = timeout_iter->get<unsigned>();
+        }
         
         std::vector<Server> servers;
         const auto serversiter = config_.find("servers");
-        if (serversiter == config_.end()) {
+        if (serversiter == config_end) {
             throw std::runtime_error("Missing \"servers\" field");
         }
+
         for (const json& server : *serversiter) {
             const auto end = server.end();
 
-            const auto name_find = server.find("name");
-            if (name_find == end) {
+            const auto name_iter = server.find("name");
+            if (name_iter == end) {
                 throw std::runtime_error("Missing required \"name\" field");
             }
             
-            const auto name = name_find->get<std::string>();
+            const auto name = name_iter->get<std::string>();
             
             const auto url = server.find("url");
             if (url != end) {
