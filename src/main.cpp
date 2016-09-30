@@ -203,9 +203,19 @@ public:
         const unsigned timeout = 5;
         
         std::vector<Server> servers;
-        for (const json& server : config_["servers"]) {
-            const auto name = server["name"].get<std::string>();
+        const auto serversiter = config_.find("servers");
+        if (serversiter == config_.end()) {
+            throw std::runtime_error("Missing \"servers\" field");
+        }
+        for (const json& server : *serversiter) {
             const auto end = server.end();
+
+            const auto name_find = server.find("name");
+            if (name_find == end) {
+                throw std::runtime_error("Missing required \"name\" field");
+            }
+            
+            const auto name = name_find->get<std::string>();
             
             const auto url = server.find("url");
             if (url != end) {
@@ -217,7 +227,10 @@ public:
             const auto port = server.find("port");
             if (host != end && port != end) {
                 servers.emplace_back(name, std::make_unique<ServiceMonitor>(host->get<std::string>(), port->get<unsigned>(), timeout));
+                continue;
             }
+            
+            throw std::runtime_error("Invalid entry - either \"url\" or both \"host\" and \"port\" must be specified");
         }
         
         std::vector<std::future<void>> futures;
