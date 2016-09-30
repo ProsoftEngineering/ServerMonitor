@@ -151,9 +151,11 @@ private:
 
 class Server {
 public:
-    Server(const std::string& name, const std::shared_ptr<Monitor>& monitor)
+    using MonitorPtr = std::unique_ptr<Monitor>;
+    
+    Server(const std::string& name, MonitorPtr monitor)
         : name_(name)
-        , monitor_(monitor)
+        , monitor_(std::move(monitor))
     {
     }
 
@@ -161,7 +163,7 @@ public:
         return name_;
     }
     
-    const std::shared_ptr<Monitor>& monitor() const {
+    const MonitorPtr& monitor() const {
         return monitor_;
     }
     
@@ -172,9 +174,16 @@ public:
     bool result() const {
         return result_;
     }
+    
+    Server(const Server&) = delete;
+    Server& operator=(const Server&) = delete;
+    
+    Server(Server&& other) = default;
+    Server& operator=(Server&&) = default;
+
 private:
-    const std::string name_;
-    const std::shared_ptr<Monitor> monitor_;
+    std::string name_;
+    MonitorPtr monitor_;
     bool result_;
 };
 
@@ -185,9 +194,9 @@ public:
         const unsigned timeout = 5;
         
         std::vector<Server> servers;
-        servers.emplace_back("Apple Website", std::make_shared<WebsiteMonitor>("http://www.apple.com", timeout));
-        servers.emplace_back("Apple Secure Website", std::make_shared<WebsiteMonitor>("https://www.apple.com", timeout));
-        servers.emplace_back("Apple SSL", std::make_shared<ServiceMonitor>("apple.com", 443, timeout));
+        servers.emplace_back("Apple Website", std::make_unique<WebsiteMonitor>("http://www.apple.com", timeout));
+        servers.emplace_back("Apple Secure Website", std::make_unique<WebsiteMonitor>("https://www.apple.com", timeout));
+        servers.emplace_back("Apple SSL", std::make_unique<ServiceMonitor>("apple.com", 443, timeout));
         
         std::vector<std::future<void>> futures;
 
@@ -208,7 +217,7 @@ public:
         elapsedTime.stop();
 
         for (const auto& server : servers) {
-            auto monitor = server.monitor();
+            const auto& monitor = server.monitor();
             printf("%s: %d: %s (%u ms)\n", server.name().c_str(), server.result(), monitor->errorMessage().c_str(), monitor->duration());
         }
         
