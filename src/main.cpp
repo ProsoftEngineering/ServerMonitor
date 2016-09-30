@@ -199,7 +199,7 @@ public:
     {
     }
     
-    bool run() {
+    void run() {
         const unsigned timeout = 5;
         
         std::vector<Server> servers;
@@ -244,8 +244,6 @@ public:
         }
         
         printf("Total time: %u ms\n", elapsedTime.duration());
-        
-        return true;
     }
     
 private:
@@ -253,25 +251,25 @@ private:
 };
 
 int main(int argc, const char * argv[]) {
-    if (argc != 2) {
-        printf("Missing config arg\n");
-        return EXIT_FAILURE;
-    }
-    
-    json config;
-
     try {
+        if (argc != 2) {
+            throw std::invalid_argument("Missing config arg");
+        }
+
         std::ifstream filestream(argv[1]);
         if (!filestream.is_open()) {
-            printf("Invalid file: %s\n", argv[1]);
-            return EXIT_FAILURE;
+            throw std::runtime_error("Can't open config file");
         }
+
+        json config;
         filestream >> config;
+
+        ServerMonitor mon(config);
+        mon.run();
+
+        return EXIT_SUCCESS;
     } catch (const std::exception& ex) {
-        std::cout << "ERROR: JSON invalid (" << ex.what() << ")" << std::endl;
+        std::cout << "ERROR: " << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
-    
-    ServerMonitor mon(config);
-    return mon.run() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
