@@ -16,6 +16,6 @@ else()
 endif()
 
 if(APPLE)
-  target_sources(${PROJECT_NAME} PRIVATE src/url_apple.mm)
-  set_source_files_properties(src/url_apple.mm PROPERTIES COMPILE_FLAGS -fobjc-arc)
+  target_sources(${PROJECT_NAME} PRIVATE src/http_apple.mm)
+  set_source_files_properties(src/http_apple.mm PROPERTIES COMPILE_FLAGS -fobjc-arc)
 endif()

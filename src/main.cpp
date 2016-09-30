@@ -63,8 +63,8 @@ public:
     }
     
     virtual bool execute() override {
-        extern bool UrlDownload(const std::string& url, unsigned timeout, std::string& errorMessage);
-        return UrlDownload(url_, timeout_, errorMessage_);
+        extern bool HttpHead(const std::string& url, unsigned timeout, std::string& errorMessage);
+        return HttpHead(url_, timeout_, errorMessage_);
     }
     
 private:
