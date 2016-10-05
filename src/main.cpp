@@ -16,23 +16,23 @@
 
 namespace {
 
-using json = nlohmann::json;
+    using json = nlohmann::json;
 
-using TimeoutType = unsigned;
-using DurationType = unsigned;
-using PortType = unsigned;
+    using TimeoutType = unsigned;
+    using DurationType = unsigned;
+    using PortType = unsigned;
 
-static const TimeoutType kDefaultTimeout = 5;
+    static const TimeoutType kDefaultTimeout = 5;
 
-json read_json_file(const std::string& path) {
-    std::ifstream filestream(path);
-    if (!filestream.is_open()) {
-        throw std::runtime_error("Can't open config file");
+    json read_json_file(const std::string& path) {
+        std::ifstream filestream(path);
+        if (!filestream.is_open()) {
+            throw std::runtime_error("Can't open config file");
+        }
+        json data;
+        filestream >> data;
+        return data;
     }
-    json data;
-    filestream >> data;
-    return data;
-}
 
 }
 
