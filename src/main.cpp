@@ -2,6 +2,7 @@
 #include <future>
 #include <iostream>
 #include <fstream>
+#include <unordered_set>
 #include <vector>
 
 #include <sys/types.h>
@@ -219,6 +220,8 @@ public:
         if (serversiter == config_end) {
             throw std::runtime_error("Missing \"servers\" field");
         }
+        
+        std::unordered_set<std::string> names;
 
         for (const json& server : *serversiter) {
             const auto end = server.end();
@@ -229,6 +232,10 @@ public:
             }
             
             const auto name = name_iter->get<std::string>();
+            if (names.find(name) != names.end()) {
+                throw std::runtime_error("Name \"" + name + "\" is already used");
+            }
+            names.insert(name);
             
             TimeoutType timeout = global_timeout;
             const auto timeout_iter = server.find("timeout");
