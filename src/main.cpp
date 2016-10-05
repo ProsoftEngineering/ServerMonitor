@@ -15,6 +15,8 @@
 using json = nlohmann::json;
 
 using TimeoutType = unsigned;
+using DurationType = unsigned;
+using PortType = unsigned;
 
 class ElapsedTime {
 public:
@@ -26,15 +28,15 @@ public:
 
     void stop() {
         const auto end = ClockType::now();
-        duration_ = static_cast<unsigned>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start_).count());
+        duration_ = static_cast<DurationType>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start_).count());
     }
 
-    unsigned duration() const {
+    DurationType duration() const {
         return duration_;
     }
 private:
     ClockType::time_point start_;
-    unsigned duration_;
+    DurationType duration_;
 };
 
 class Monitor {
@@ -50,7 +52,7 @@ public:
         return errorMessage_;
     }
     
-    unsigned duration() const {
+    DurationType duration() const {
         return elapsedTime_.duration();
     }
     
@@ -83,7 +85,7 @@ private:
 
 class ServiceMonitor : public Monitor {
 public:
-    ServiceMonitor(const std::string& host, unsigned port, TimeoutType timeout)
+    ServiceMonitor(const std::string& host, PortType port, TimeoutType timeout)
         : host_(host)
         , port_(std::to_string(port))
         , timeout_(timeout)
@@ -243,7 +245,7 @@ public:
             const auto host = server.find("host");
             const auto port = server.find("port");
             if (host != end && port != end) {
-                servers.emplace_back(name, std::make_unique<ServiceMonitor>(host->get<std::string>(), port->get<unsigned>(), timeout));
+                servers.emplace_back(name, std::make_unique<ServiceMonitor>(host->get<std::string>(), port->get<PortType>(), timeout));
                 continue;
             }
             
