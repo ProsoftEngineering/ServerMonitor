@@ -20,6 +20,8 @@ using TimeoutType = unsigned;
 using DurationType = unsigned;
 using PortType = unsigned;
 
+static const TimeoutType kDefaultTimeout = 5;
+
 class ElapsedTime {
 public:
     using ClockType = std::chrono::high_resolution_clock;
@@ -211,7 +213,7 @@ public:
     void run() {
         const auto config_end = config_.end();
         
-        TimeoutType global_timeout = 5;
+        TimeoutType global_timeout = kDefaultTimeout;
         const auto global_timeout_iter = config_.find("timeout");
         if (global_timeout_iter != config_end) {
             global_timeout = global_timeout_iter->get<TimeoutType>();
