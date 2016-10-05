@@ -72,11 +72,20 @@ private:
 
 class Monitor {
 public:
+    Monitor(TimeoutType timeout)
+        : timeout_(timeout)
+    {
+    }
+    
     bool run() {
         elapsedTime_.start();
         const bool result = execute();
         elapsedTime_.stop();
         return result;
+    }
+    
+    TimeoutType timeout() const {
+        return timeout_;
     }
 
     const std::string& errorMessage() const {
@@ -93,33 +102,33 @@ protected:
     std::string errorMessage_;
     
 private:
+    const TimeoutType timeout_;
     ElapsedTime elapsedTime_;
 };
 
 class WebsiteMonitor : public Monitor {
 public:
     WebsiteMonitor(const std::string& url, TimeoutType timeout)
-        : url_(url)
-        , timeout_(timeout)
+        : Monitor(timeout)
+        , url_(url)
     {
     }
     
     virtual bool execute() override {
         extern bool HttpHead(const std::string& url, TimeoutType timeout, std::string& errorMessage);
-        return HttpHead(url_, timeout_, errorMessage_);
+        return HttpHead(url_, timeout(), errorMessage_);
     }
     
 private:
     const std::string url_;
-    const TimeoutType timeout_;
 };
 
 class ServiceMonitor : public Monitor {
 public:
     ServiceMonitor(const std::string& host, PortType port, TimeoutType timeout)
-        : host_(host)
+        : Monitor(timeout)
+        , host_(host)
         , port_(std::to_string(port))
-        , timeout_(timeout)
     {
     }
     
@@ -170,7 +179,7 @@ public:
         FD_SET(socket.value, &rfds);
         
         struct ::timeval tv;
-        tv.tv_sec = timeout_;
+        tv.tv_sec = timeout();
         tv.tv_usec = 0;
         
         const int retval = ::select(socket.value+1, nullptr, &rfds, nullptr, &tv);
@@ -188,14 +197,13 @@ public:
 private:
     const std::string host_;
     const std::string port_;
-    const TimeoutType timeout_;
 };
 
 class PingMonitor : public Monitor {
 public:
     PingMonitor(const std::string& host, TimeoutType timeout)
-        : host_(host)
-        , timeout_(timeout)
+        : Monitor(timeout)
+        , host_(host)
     {
     }
     
@@ -208,7 +216,7 @@ public:
         const auto read_stderr = [&stderr_str](const char *bytes, size_t n) {
             stderr_str.append(bytes, n);
         };
-        Process process("ping -t " + std::to_string(timeout_) + " -c 1 \"" + host_ + "\"", {}, read_stdout, read_stderr);
+        Process process("ping -t " + std::to_string(timeout()) + " -c 1 \"" + host_ + "\"", {}, read_stdout, read_stderr);
         const int status = process.get_exit_status();
         if (status != 0) {
             const auto ping_output = trim(stdout_str + stderr_str);
@@ -224,7 +232,6 @@ public:
     
 private:
     const std::string host_;
-    const TimeoutType timeout_;
 };
 
 class Server {
