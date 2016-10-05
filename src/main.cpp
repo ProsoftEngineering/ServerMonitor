@@ -14,6 +14,8 @@
 
 #include "json.hpp"
 
+namespace {
+
 using json = nlohmann::json;
 
 using TimeoutType = unsigned;
@@ -21,6 +23,18 @@ using DurationType = unsigned;
 using PortType = unsigned;
 
 static const TimeoutType kDefaultTimeout = 5;
+
+json read_json_file(const std::string& path) {
+    std::ifstream filestream(path);
+    if (!filestream.is_open()) {
+        throw std::runtime_error("Can't open config file");
+    }
+    json data;
+    filestream >> data;
+    return data;
+}
+
+}
 
 class ElapsedTime {
 public:
@@ -211,6 +225,8 @@ public:
     }
     
     void run() {
+        const json status_prev{read_json_file(status_path_)};
+        
         const auto config_end = config_.end();
         
         TimeoutType global_timeout = kDefaultTimeout;
@@ -286,13 +302,19 @@ public:
         for (const auto& server : servers) {
             const auto& monitor = server.monitor();
             const auto name = server.name();
-            if (server.result()) {
+            const bool result = server.result();
+            if (result) {
                 std::cout << name << ": UP";
             } else {
                 std::cout << name << ": DOWN - " << monitor->errorMessage();
             }
             std::cout << " (" << monitor->duration() << " ms)" << std::endl;
-            status[name] = server.result();
+            status[name] = result;
+            
+            const auto status_prev_it = status_prev.find(name);
+            if (status_prev_it != status_prev.end() && status_prev_it->is_boolean() && status_prev_it->get<bool>() != result) {
+                std::cout << "  Handle " << (result ? "UP" : "DOWN") << std::endl;
+            }
         }
         
         std::cout << "Total time: " << elapsedTime.duration() << " ms" << std::endl;
@@ -318,14 +340,8 @@ int main(int argc, const char * argv[]) {
         const std::string config_path{argv[1]};
         const std::string status_path{argv[2]};
 
-        std::ifstream filestream(config_path);
-        if (!filestream.is_open()) {
-            throw std::runtime_error("Can't open config file");
-        }
+        const json config{read_json_file(config_path)};
 
-        json config;
-        filestream >> config;
-        
         ServerMonitor mon(config, status_path);
         mon.run();
 
