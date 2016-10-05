@@ -47,6 +47,38 @@ namespace {
         }
         return {it, rit.base()};
     }
+
+    class Task {
+    public:
+        Task(const std::string& command)
+        : cmd_(command)
+        {
+        }
+        
+        int run() {
+            const auto read_stdout = [this](const char *bytes, size_t n) {
+                stdout_.append(bytes, n);
+            };
+            const auto read_stderr = [this](const char *bytes, size_t n) {
+                stderr_.append(bytes, n);
+            };
+            Process process(cmd_, {}, read_stdout, read_stderr);
+            return process.get_exit_status();
+        }
+        
+        const std::string& out() const {
+            return stdout_;
+        }
+        
+        const std::string err() const {
+            return stderr_;
+        }
+        
+    private:
+        const std::string cmd_;
+        std::string stdout_;
+        std::string stderr_;
+    };
 }
 
 class ElapsedTime {
@@ -208,17 +240,11 @@ public:
     }
     
     virtual bool execute() override {
-        std::string stdout_str;
-        std::string stderr_str;
-        const auto read_stdout = [&stdout_str](const char *bytes, size_t n) {
-            stdout_str.append(bytes, n);
-        };
-        const auto read_stderr = [&stderr_str](const char *bytes, size_t n) {
-            stderr_str.append(bytes, n);
-        };
-        Process process("ping -t " + std::to_string(timeout()) + " -c 1 \"" + host_ + "\"", {}, read_stdout, read_stderr);
-        const int status = process.get_exit_status();
+        Task task{"ping -t " + std::to_string(timeout()) + " -c 1 \"" + host_ + "\""};
+        const int status = task.run();
         if (status != 0) {
+            const auto& stdout_str = task.out();
+            const auto& stderr_str = task.err();
             const auto ping_output = trim(stdout_str + stderr_str);
             if (!ping_output.empty()) {
                 errorMessage_ = ping_output;
