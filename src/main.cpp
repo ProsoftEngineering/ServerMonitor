@@ -2,6 +2,7 @@
 #include <future>
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -201,8 +202,9 @@ private:
 
 class ServerMonitor {
 public:
-    ServerMonitor(const json& config)
+    ServerMonitor(const json& config, const std::string& status_path)
         : config_(config)
+        , status_path_(status_path)
     {
     }
     
@@ -277,38 +279,52 @@ public:
         
         elapsedTime.stop();
 
+        json status;
+        
         for (const auto& server : servers) {
             const auto& monitor = server.monitor();
+            const auto name = server.name();
             if (server.result()) {
-                std::cout << server.name() << ": UP";
+                std::cout << name << ": UP";
             } else {
-                std::cout << server.name() << ": DOWN - " << monitor->errorMessage();
+                std::cout << name << ": DOWN - " << monitor->errorMessage();
             }
             std::cout << " (" << monitor->duration() << " ms)" << std::endl;
+            status[name] = server.result();
         }
         
         std::cout << "Total time: " << elapsedTime.duration() << " ms" << std::endl;
+        
+        std::ofstream output_file{status_path_};
+        if (!output_file.is_open()) {
+            throw std::runtime_error("Can't open status file");
+        }
+        output_file << status.dump(4) << std::endl;
     }
     
 private:
     const json config_;
+    const std::string status_path_;
 };
 
 int main(int argc, const char * argv[]) {
     try {
-        if (argc != 2) {
-            throw std::invalid_argument("Missing config arg");
+        if (argc != 3) {
+            throw std::invalid_argument("Invalid arguments");
         }
+        
+        const std::string config_path{argv[1]};
+        const std::string status_path{argv[2]};
 
-        std::ifstream filestream(argv[1]);
+        std::ifstream filestream(config_path);
         if (!filestream.is_open()) {
             throw std::runtime_error("Can't open config file");
         }
 
         json config;
         filestream >> config;
-
-        ServerMonitor mon(config);
+        
+        ServerMonitor mon(config, status_path);
         mon.run();
 
         return EXIT_SUCCESS;
