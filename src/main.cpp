@@ -13,6 +13,7 @@
 #include <fcntl.h>
 
 #include "json.hpp"
+#include "process.hpp"
 
 namespace {
 
@@ -34,6 +35,18 @@ namespace {
         return data;
     }
 
+    template <typename StringType>
+    StringType trim(const StringType& s) {
+        auto it = s.begin();
+        while (it != s.end() && isspace(*it)) {
+            it++;
+        }
+        auto rit = s.rbegin();
+        while (rit.base() != it && isspace(*rit)) {
+            rit++;
+        }
+        return {it, rit.base()};
+    }
 }
 
 class ElapsedTime {
@@ -178,6 +191,42 @@ private:
     const TimeoutType timeout_;
 };
 
+class PingMonitor : public Monitor {
+public:
+    PingMonitor(const std::string& host, TimeoutType timeout)
+        : host_(host)
+        , timeout_(timeout)
+    {
+    }
+    
+    virtual bool execute() override {
+        std::string stdout_str;
+        std::string stderr_str;
+        const auto read_stdout = [&stdout_str](const char *bytes, size_t n) {
+            stdout_str.append(bytes, n);
+        };
+        const auto read_stderr = [&stderr_str](const char *bytes, size_t n) {
+            stderr_str.append(bytes, n);
+        };
+        Process process("ping -t " + std::to_string(timeout_) + " -c 1 \"" + host_ + "\"", {}, read_stdout, read_stderr);
+        const int status = process.get_exit_status();
+        if (status != 0) {
+            const auto ping_output = trim(stdout_str + stderr_str);
+            if (!ping_output.empty()) {
+                errorMessage_ = ping_output;
+            } else {
+                errorMessage_ = "ping failed with exit code " + std::to_string(status);
+            }
+            return false;
+        }
+        return true;
+    }
+    
+private:
+    const std::string host_;
+    const TimeoutType timeout_;
+};
+
 class Server {
 public:
     using MonitorPtr = std::unique_ptr<Monitor>;
@@ -273,6 +322,12 @@ public:
             const auto port = server.find("port");
             if (host != end && port != end) {
                 servers.emplace_back(name, std::make_unique<ServiceMonitor>(host->get<std::string>(), port->get<PortType>(), timeout));
+                continue;
+            }
+            
+            const auto ping_host = server.find("ping");
+            if (ping_host != end) {
+                servers.emplace_back(name, std::make_unique<PingMonitor>(ping_host->get<std::string>(), timeout));
                 continue;
             }
             

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
 project(ServerMonitor)
 
+add_subdirectory(vendor/tiny-process-library)
+
 add_executable(${PROJECT_NAME}
   src/main.cpp
 )
@@ -27,4 +29,9 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   vendor/json/src
+  vendor/tiny-process-library
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  tiny-process-library
 )

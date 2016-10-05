@@ -27,6 +27,14 @@
 			"host": "kainjow.com",
 			"port": 89,
 			"timeout": 1
+		},
+		{
+			"name": "Kainjow Ping",
+			"ping": "kainjow.com"
+		},
+		{
+			"name": "Kainjow Ping Bad",
+			"ping": "kainjoww.com"
 		}
 	]
 }
