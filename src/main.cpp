@@ -202,10 +202,10 @@ public:
     void run() {
         const auto config_end = config_.end();
         
-        unsigned timeout = 5;
-        const auto timeout_iter = config_.find("timeout");
-        if (timeout_iter != config_end) {
-            timeout = timeout_iter->get<unsigned>();
+        unsigned global_timeout = 5;
+        const auto global_timeout_iter = config_.find("timeout");
+        if (global_timeout_iter != config_end) {
+            global_timeout = global_timeout_iter->get<unsigned>();
         }
         
         std::vector<Server> servers;
@@ -223,6 +223,12 @@ public:
             }
             
             const auto name = name_iter->get<std::string>();
+            
+            unsigned timeout = global_timeout;
+            const auto timeout_iter = server.find("timeout");
+            if (timeout_iter != end) {
+                timeout = timeout_iter->get<unsigned>();
+            }
             
             const auto url = server.find("url");
             if (url != end) {
