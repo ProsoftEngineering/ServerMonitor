@@ -18,12 +18,14 @@ using TimeoutType = unsigned;
 
 class ElapsedTime {
 public:
+    using ClockType = std::chrono::high_resolution_clock;
+    
     void start() {
-        start_ = std::chrono::high_resolution_clock::now();
+        start_ = ClockType::now();
     }
 
     void stop() {
-        const auto end = std::chrono::high_resolution_clock::now();
+        const auto end = ClockType::now();
         duration_ = static_cast<unsigned>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start_).count());
     }
 
@@ -31,7 +33,7 @@ public:
         return duration_;
     }
 private:
-    std::chrono::high_resolution_clock::time_point start_;
+    ClockType::time_point start_;
     unsigned duration_;
 };
 
