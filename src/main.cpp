@@ -14,6 +14,8 @@
 
 using json = nlohmann::json;
 
+using TimeoutType = unsigned;
+
 class ElapsedTime {
 public:
     void start() {
@@ -61,25 +63,25 @@ private:
 
 class WebsiteMonitor : public Monitor {
 public:
-    WebsiteMonitor(const std::string& url, unsigned timeout)
+    WebsiteMonitor(const std::string& url, TimeoutType timeout)
         : url_(url)
         , timeout_(timeout)
     {
     }
     
     virtual bool execute() override {
-        extern bool HttpHead(const std::string& url, unsigned timeout, std::string& errorMessage);
+        extern bool HttpHead(const std::string& url, TimeoutType timeout, std::string& errorMessage);
         return HttpHead(url_, timeout_, errorMessage_);
     }
     
 private:
     const std::string url_;
-    const unsigned timeout_;
+    const TimeoutType timeout_;
 };
 
 class ServiceMonitor : public Monitor {
 public:
-    ServiceMonitor(const std::string& host, unsigned port, unsigned timeout)
+    ServiceMonitor(const std::string& host, unsigned port, TimeoutType timeout)
         : host_(host)
         , port_(std::to_string(port))
         , timeout_(timeout)
@@ -151,7 +153,7 @@ public:
 private:
     const std::string host_;
     const std::string port_;
-    const unsigned timeout_;
+    const TimeoutType timeout_;
 };
 
 class Server {
@@ -202,10 +204,10 @@ public:
     void run() {
         const auto config_end = config_.end();
         
-        unsigned global_timeout = 5;
+        TimeoutType global_timeout = 5;
         const auto global_timeout_iter = config_.find("timeout");
         if (global_timeout_iter != config_end) {
-            global_timeout = global_timeout_iter->get<unsigned>();
+            global_timeout = global_timeout_iter->get<TimeoutType>();
         }
         
         std::vector<Server> servers;
@@ -224,10 +226,10 @@ public:
             
             const auto name = name_iter->get<std::string>();
             
-            unsigned timeout = global_timeout;
+            TimeoutType timeout = global_timeout;
             const auto timeout_iter = server.find("timeout");
             if (timeout_iter != end) {
-                timeout = timeout_iter->get<unsigned>();
+                timeout = timeout_iter->get<TimeoutType>();
             }
             
             const auto url = server.find("url");
