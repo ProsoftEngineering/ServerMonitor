@@ -331,7 +331,7 @@ public:
 class CommandAction : public Action {
 public:
     CommandAction(const std::string& command)
-    : cmd_(command)
+        : cmd_(command)
     {
     }
     
