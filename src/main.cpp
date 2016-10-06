@@ -260,27 +260,6 @@ private:
     const std::string host_;
 };
 
-class Action {
-public:
-    virtual void run() = 0;
-};
-
-class CommandAction : public Action {
-public:
-    CommandAction(const std::string& command)
-        : cmd_(command)
-    {
-    }
-    
-    virtual void run() override {
-        Task task{cmd_};
-        (void)task.run();
-    }
-    
-private:
-    const std::string cmd_;
-};
-
 class Server {
 public:
     using MonitorPtr = std::unique_ptr<Monitor>;
@@ -324,6 +303,45 @@ private:
     MonitorPtr monitor_;
     std::string action_;
     bool result_;
+};
+
+std::string replace_variables(const std::string& input, const Server& server) {
+    std::string str{input};
+    const std::unordered_map<std::string, std::string> map{
+        {"name", server.name()},
+        {"status", server.result() ? "up" : "down"},
+        {"Status", server.result() ? "Up" : "Down"},
+        {"STATUS", server.result() ? "UP" : "DOWN"},
+    };
+    for (const auto& item : map) {
+        std::string what = "{{" + item.first + "}}";
+        std::string::size_type pos;
+        while ((pos = str.find(what)) != std::string::npos) {
+            str.replace(pos, what.size(), item.second);
+        }
+    }
+    return str;
+}
+
+class Action {
+public:
+    virtual void run(const Server& server) = 0;
+};
+
+class CommandAction : public Action {
+public:
+    CommandAction(const std::string& command)
+    : cmd_(command)
+    {
+    }
+    
+    virtual void run(const Server& server) override {
+        Task task{replace_variables(cmd_, server)};
+        (void)task.run();
+    }
+    
+private:
+    const std::string cmd_;
 };
 
 class ServerMonitor {
@@ -464,7 +482,7 @@ public:
                 if (!server.action().empty()) {
                     const auto action_iter = actions.find(server.action());
                     if (action_iter != actions.end()) {
-                        action_iter->second->run();
+                        action_iter->second->run(server);
                     }
                 }
             }

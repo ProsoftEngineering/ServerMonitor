@@ -1,7 +1,7 @@
 {
 	"actions": {
 		"notif": {
-			"cmd": "osascript -e 'display notification \"Up or Down\" with title \"What\"'"
+			"cmd": "osascript -e 'display notification \"Server is {{STATUS}}\" with title \"{{name}}\"'"
 		}
 	},
 	"servers": [
