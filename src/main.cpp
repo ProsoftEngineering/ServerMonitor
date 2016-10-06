@@ -260,13 +260,36 @@ private:
     const std::string host_;
 };
 
+class Action {
+public:
+    virtual void run() = 0;
+};
+
+class CommandAction : public Action {
+public:
+    CommandAction(const std::string& command)
+        : cmd_(command)
+    {
+    }
+    
+    virtual void run() override {
+        Task task{cmd_};
+        (void)task.run();
+    }
+    
+private:
+    const std::string cmd_;
+};
+
 class Server {
 public:
     using MonitorPtr = std::unique_ptr<Monitor>;
     
-    Server(const std::string& name, MonitorPtr monitor)
+    Server(const std::string& name, MonitorPtr monitor, const std::string& action)
         : name_(name)
         , monitor_(std::move(monitor))
+        , action_(action)
+        , result_(false)
     {
     }
 
@@ -276,6 +299,10 @@ public:
     
     const MonitorPtr& monitor() const {
         return monitor_;
+    }
+    
+    const std::string& action() const {
+        return action_;
     }
     
     void setResult(bool result) {
@@ -295,6 +322,7 @@ public:
 private:
     std::string name_;
     MonitorPtr monitor_;
+    std::string action_;
     bool result_;
 };
 
@@ -311,21 +339,43 @@ public:
         
         const auto config_end = config_.end();
         
+        using ActionPtr = std::unique_ptr<Action>;
+        std::unordered_map<std::string, ActionPtr> actions;
+        const auto actions_iter = config_.find("actions");
+        if (actions_iter != config_end && actions_iter->is_object()) {
+            for (auto it = (*actions_iter).cbegin(); it != (*actions_iter).cend(); ++it) {
+                const auto& value = it.value();
+                if (value.is_object()) {
+                    const std::string name = it.key();
+                    
+                    const auto end = value.end();
+                    
+                    const auto cmd_iter = value.find("cmd");
+                    if (cmd_iter != end) {
+                        actions[name] = std::make_unique<CommandAction>(cmd_iter.value().get<std::string>());
+                        continue;
+                    }
+                    
+                    throw std::runtime_error("Invalid action entry");
+                }
+            }
+        }
+        
         TimeoutType global_timeout = kDefaultTimeout;
         const auto global_timeout_iter = config_.find("timeout");
         if (global_timeout_iter != config_end) {
             global_timeout = global_timeout_iter->get<TimeoutType>();
         }
         
-        std::vector<Server> servers;
         const auto serversiter = config_.find("servers");
         if (serversiter == config_end) {
             throw std::runtime_error("Missing \"servers\" field");
         }
-        
+
+        std::vector<Server> servers;
         std::unordered_set<std::string> names;
 
-        for (const json& server : *serversiter) {
+        for (const auto& server : *serversiter) {
             const auto end = server.end();
 
             const auto name_iter = server.find("name");
@@ -345,26 +395,35 @@ public:
                 timeout = timeout_iter->get<TimeoutType>();
             }
             
+            std::string action;
+            const auto action_iter = server.find("action");
+            if (action_iter != end) {
+                action = action_iter->get<std::string>();
+                if (actions.find(action) == actions.end()) {
+                    throw std::runtime_error("Unknown action \"" + action + "\"");
+                }
+            }
+
             const auto url = server.find("url");
             if (url != end) {
-                servers.emplace_back(name, std::make_unique<WebsiteMonitor>(url->get<std::string>(), timeout));
+                servers.emplace_back(name, std::make_unique<WebsiteMonitor>(url->get<std::string>(), timeout), action);
                 continue;
             }
             
             const auto host = server.find("host");
             const auto port = server.find("port");
             if (host != end && port != end) {
-                servers.emplace_back(name, std::make_unique<ServiceMonitor>(host->get<std::string>(), port->get<PortType>(), timeout));
+                servers.emplace_back(name, std::make_unique<ServiceMonitor>(host->get<std::string>(), port->get<PortType>(), timeout), action);
                 continue;
             }
             
             const auto ping_host = server.find("ping");
             if (ping_host != end) {
-                servers.emplace_back(name, std::make_unique<PingMonitor>(ping_host->get<std::string>(), timeout));
+                servers.emplace_back(name, std::make_unique<PingMonitor>(ping_host->get<std::string>(), timeout), action);
                 continue;
             }
             
-            throw std::runtime_error("Invalid entry - either \"url\" or both \"host\" and \"port\" must be specified");
+            throw std::runtime_error("Invalid server entry for \"" + name + "\"");
         }
         
         std::vector<std::future<void>> futures;
@@ -402,6 +461,12 @@ public:
             const auto status_prev_it = status_prev.find(name);
             if (status_prev_it != status_prev.end() && status_prev_it->is_boolean() && status_prev_it->get<bool>() != result) {
                 std::cout << "  Handle " << (result ? "UP" : "DOWN") << std::endl;
+                if (!server.action().empty()) {
+                    const auto action_iter = actions.find(server.action());
+                    if (action_iter != actions.end()) {
+                        action_iter->second->run();
+                    }
+                }
             }
         }
         

@@ -1,4 +1,9 @@
 {
+	"actions": {
+		"notif": {
+			"cmd": "osascript -e 'display notification \"Up or Down\" with title \"What\"'"
+		}
+	},
 	"servers": [
 		{
 			"name": "Apple Website",
@@ -35,6 +40,7 @@
 		{
 			"name": "Kainjow Ping Bad",
 			"ping": "kainjoww.com"
+			"action": "notif"
 		}
 	]
 }
