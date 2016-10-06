@@ -23,6 +23,10 @@
 			"url": "https://apple.com"
 		},
 		{
+			"name": "CNN",
+			"url": "http://cnn.com"
+		},
+		{
 			"name": "GitHub",
 			"host": "github.com",
 			"port": 80
