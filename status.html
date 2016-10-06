@@ -30,7 +30,7 @@
 			$.each(data, function(key, value) {
 				var name_td = $('<td></td>').text(key);
 				var status_td = $('<td></td>').text(value ? 'Up' : 'Down');
-				var tr = $('<tr></tr>').append(name_td).append(status_td);
+				var tr = $('<tr></tr>').append(name_td, status_td);
 				tr.addClass(value ? 'success' : 'danger');
 				table.append(tr);
 			});
