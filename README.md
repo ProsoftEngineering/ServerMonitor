@@ -10,13 +10,13 @@ ServerMonitor checks each server in parallel, so the total time to check all ser
 
 # Configuration
 
-The program is run like so:
+The program is ran like so:
 
     ServerMonitor <input_config.json> <output_status.json>
 
 There are only two command line arguments:
 
-1. Input config - this is a JSON file with all configuration options specified. See [config.json](config.json) or below for examples.
+1. Input config - this is a JSON file with all configuration options specified. See below for examples.
 
 2. Output status - after checking all servers, a JSON status report will get generated, which can then be consumed by any program that can read JSON. See [status.html](status.html) as an example static HTML page that renders the JSON file via jQuery.
 
@@ -84,14 +84,14 @@ For example, to display a notification in macOS when a server goes up or down:
 }
 ```
 
-As used above, actions can use the following variables:
+As used above, actions can use the following case-sensitive variables:
 
-| Variable | Description    |
-| -------- | -------------- |
-| name     | Server name    |
-| status   | "up" or "down  |
-| Status   | "Up" or "Down" |
-| STATUS   | "UP" or "DOWN" |
+| Variable   | Description    |
+| ---------- | -------------- |
+| {{name}}   | Server name    |
+| {{status}} | "up" or "down  |
+| {{Status}} | "Up" or "Down" |
+| {{STATUS   | "UP" or "DOWN" |
 
 # Scheduling
 
@@ -122,15 +122,13 @@ Or with cron:
 
 # Building
 
-First make sure you have done a recursive checkout:
+Dependencies:
+
+- [CMake](https://cmake.org) 3.1 or later
+- CURL
+
+First make sure you cloned recursively:
 
     git clone --recursive https://github.com/kainjow/ServerMonitor.git
 
-Then use CMake:
-
-1. `mkdir build`
-2. `cd build`
-3. `cmake -DCMAKE_BUILD_TYPE=Release ..`
-4. `cmake --build . --config Release`
-
-CURL is the only dependency currently that's not included in the source tree.
+Then run `make`.
