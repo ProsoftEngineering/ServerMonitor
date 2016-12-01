@@ -35,6 +35,10 @@
 		{
 			"name": "GitHub Invalid",
 			"ping": "github.invalid"
+		},
+		{
+			"name": "Custom Server",
+			"cmd": "ls -al ~"
 		}
 	]
 }
