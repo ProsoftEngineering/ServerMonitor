@@ -240,6 +240,12 @@ public:
     {
     }
     
+    CommandMonitor(const std::string& command, TimeoutType timeout)
+        : Monitor(timeout)
+        , command_(command)
+    {
+    }
+
     void setCommand(const std::string& command) {
         command_ = command;
     }
@@ -465,6 +471,12 @@ public:
             const auto ping_host = server.find("ping");
             if (ping_host != end) {
                 servers.emplace_back(name, std::make_unique<PingMonitor>(ping_host->get<std::string>(), timeout), action);
+                continue;
+            }
+            
+            const auto cmd = server.find("cmd");
+            if (cmd != end) {
+                servers.emplace_back(name, std::make_unique<CommandMonitor>(cmd->get<std::string>(), timeout), action);
                 continue;
             }
             
