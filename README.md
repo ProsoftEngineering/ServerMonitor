@@ -93,6 +93,30 @@ As used above, actions can use the following case-sensitive variables:
 | {{Status}} | "Up" or "Down" |
 | {{STATUS   | "UP" or "DOWN" |
 
+# Advanced Options
+
+Advanced options can be set at the root level (along side `actions` and `servers`) and/or overridden for each individual server.
+
+| Option | Type | Description | Default |
+| --- | --- | --- | --- |
+| timeout | Integer | The timeout in seconds to wait for a response. | 5 |
+| verifypeer | Boolean | Enable or disable CURL's [VERIFYPEER](https://curl.haxx.se/libcurl/c/CURLOPT_SSL_VERIFYPEER.html) option. Useful for websites with self-signed or expired SSL certificates. | true |
+
+Example:
+
+```json
+{
+  "servers": [
+    {
+      "name": "Apple Website",
+      "url": "http://apple.com",
+      "timeout": 30,
+      "verifpeer": false
+    }
+  ]
+}
+```
+
 # Scheduling
 
 Here's an example launchd plist for macOS for running ServerMonitor every minute:
