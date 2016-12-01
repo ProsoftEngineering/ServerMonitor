@@ -37,7 +37,7 @@
 		},
 		{
 			"name": "Kainjow Ping Bad",
-			"ping": "kainjoww.com"
+			"ping": "kainjoww.com",
 			"action": "notif"
 		}
 	]
