@@ -505,7 +505,7 @@ private:
 int main(int argc, const char * argv[]) {
     try {
         if (argc != 3) {
-            throw std::invalid_argument("Invalid arguments");
+            throw std::invalid_argument("Usage: ServerMonitor <input_config.json> <output_status.json>");
         }
         
         const std::string config_path{argv[1]};
