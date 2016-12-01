@@ -140,19 +140,21 @@ private:
 
 class WebsiteMonitor : public Monitor {
 public:
-    WebsiteMonitor(const std::string& url, TimeoutType timeout)
+    WebsiteMonitor(const std::string& url, TimeoutType timeout, bool verifypeer)
         : Monitor(timeout)
         , url_(url)
+        , verifypeer_(verifypeer)
     {
     }
     
     virtual bool execute() override {
-        extern bool HttpHead(const std::string& url, TimeoutType timeout, std::string& errorMessage);
-        return HttpHead(url_, timeout(), errorMessage_);
+        extern bool HttpHead(const std::string& url, TimeoutType timeout, std::string& errorMessage, bool verifypeer);
+        return HttpHead(url_, timeout(), errorMessage_, verifypeer_);
     }
     
 private:
     const std::string url_;
+    bool verifypeer_;
 };
 
 class ServiceMonitor : public Monitor {
@@ -385,6 +387,12 @@ public:
             global_timeout = global_timeout_iter->get<TimeoutType>();
         }
         
+        bool global_verifypeer = true;
+        const auto global_verifypeer_iter = config_.find("verifypeer");
+        if (global_verifypeer_iter != config_end) {
+            global_verifypeer = global_verifypeer_iter->get<bool>();
+        }
+        
         const auto serversiter = config_.find("servers");
         if (serversiter == config_end) {
             throw std::runtime_error("Missing \"servers\" field");
@@ -413,6 +421,12 @@ public:
                 timeout = timeout_iter->get<TimeoutType>();
             }
             
+            bool verifypeer = global_verifypeer;
+            const auto verifypeer_iter = server.find("verifypeer");
+            if (verifypeer_iter != end) {
+                verifypeer = verifypeer_iter->get<bool>();
+            }
+
             std::string action;
             const auto action_iter = server.find("action");
             if (action_iter != end) {
@@ -424,7 +438,7 @@ public:
 
             const auto url = server.find("url");
             if (url != end) {
-                servers.emplace_back(name, std::make_unique<WebsiteMonitor>(url->get<std::string>(), timeout), action);
+                servers.emplace_back(name, std::make_unique<WebsiteMonitor>(url->get<std::string>(), timeout, verifypeer), action);
                 continue;
             }
             

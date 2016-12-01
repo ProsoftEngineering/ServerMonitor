@@ -15,7 +15,7 @@ namespace {
     };
 }
 
-bool HttpHead(const std::string& url, unsigned timeout, std::string& errorMessage) {
+bool HttpHead(const std::string& url, unsigned timeout, std::string& errorMessage, bool verifypeer) {
     CURLHandle handle;
     handle.value = ::curl_easy_init();
     if (!handle.value) {
@@ -33,6 +33,7 @@ bool HttpHead(const std::string& url, unsigned timeout, std::string& errorMessag
     HANDLE_CURL_CODE(curl_easy_setopt(handle.value, ::CURLOPT_URL, url.c_str()));
     HANDLE_CURL_CODE(curl_easy_setopt(handle.value, ::CURLOPT_TIMEOUT, static_cast<long>(timeout)));
     HANDLE_CURL_CODE(curl_easy_setopt(handle.value, ::CURLOPT_FOLLOWLOCATION, 1L));
+    HANDLE_CURL_CODE(curl_easy_setopt(handle.value, ::CURLOPT_SSL_VERIFYPEER, verifypeer ? 1L : 0L));
     HANDLE_CURL_CODE(::curl_easy_perform(handle.value));
     long http_code = 0;
     HANDLE_CURL_CODE(curl_easy_getinfo(handle.value, ::CURLINFO_RESPONSE_CODE, &http_code));
