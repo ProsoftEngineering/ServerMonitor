@@ -17,15 +17,10 @@ else()
   )
 endif()
 
-if(APPLE)
-  target_sources(${PROJECT_NAME} PRIVATE src/http_apple.mm)
-  set_source_files_properties(src/http_apple.mm PROPERTIES COMPILE_FLAGS -fobjc-arc)
-elseif(UNIX)
-  find_package(CURL REQUIRED)
-  target_link_libraries(${PROJECT_NAME} PRIVATE ${CURL_LIBRARIES})
-  target_include_directories(${PROJECT_NAME} PRIVATE ${CURL_INCLUDE_DIRS})
-  target_sources(${PROJECT_NAME} PRIVATE src/http_curl.cpp)
-endif()
+find_package(CURL REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CURL_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CURL_INCLUDE_DIRS})
+target_sources(${PROJECT_NAME} PRIVATE src/http_curl.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   vendor/json/src
