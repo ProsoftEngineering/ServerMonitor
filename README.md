@@ -78,9 +78,9 @@ To monitor via a custom command, for example SSH into a server and check for a f
 
 # Actions
 
-Currently the above examples don't provide any type of notification of when a server is up or down. For this you must use the `actions` key. Currently only a command can be run.
+Currently the above examples don't provide any type of notification of when a server goes up or down. For this you must use the `actions` key. Currently only a command can be run.
 
-For example, to display a notification in macOS when a server goes up or down:
+For example, to display a notification in macOS:
 
 ```json
 {
