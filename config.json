@@ -20,7 +20,7 @@
 		},
 		{
 			"name": "Google",
-			"url": "https://apple.com"
+			"ping": "google.com"
 		},
 		{
 			"name": "CNN",
@@ -29,16 +29,12 @@
 		{
 			"name": "GitHub",
 			"host": "github.com",
-			"port": 80
-		},
-		{
-			"name": "Kainjow Ping",
-			"ping": "kainjow.com"
-		},
-		{
-			"name": "Kainjow Ping Bad",
-			"ping": "kainjoww.com",
+			"port": 80,
 			"action": "notif"
+		},
+		{
+			"name": "GitHub Invalid",
+			"ping": "github.invalid"
 		}
 	]
 }
