@@ -69,7 +69,7 @@ To monitor via a custom command, for example SSH into a server and check for a f
 {
   "servers": [
     {
-      "name": "Google",
+      "name": "My Server",
       "cmd": "ssh my.server test -f myfile.txt"
     }
   ]
