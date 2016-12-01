@@ -51,7 +51,7 @@ namespace {
     class Task {
     public:
         Task(const std::string& command)
-        : cmd_(command)
+            : cmd_(command)
         {
         }
         
@@ -233,25 +233,28 @@ private:
     const std::string port_;
 };
 
-class PingMonitor : public Monitor {
+class CommandMonitor : public Monitor {
 public:
-    PingMonitor(const std::string& host, TimeoutType timeout)
+    CommandMonitor(TimeoutType timeout)
         : Monitor(timeout)
-        , host_(host)
     {
     }
     
+    void setCommand(const std::string& command) {
+        command_ = command;
+    }
+    
     virtual bool execute() override {
-        Task task{"ping -t " + std::to_string(timeout()) + " -c 1 \"" + host_ + "\""};
+        Task task{command_};
         const int status = task.run();
         if (status != 0) {
             const auto& stdout_str = task.out();
             const auto& stderr_str = task.err();
-            const auto ping_output = trim(stdout_str + stderr_str);
-            if (!ping_output.empty()) {
-                errorMessage_ = ping_output;
+            const auto output = trim(stdout_str + stderr_str);
+            if (!output.empty()) {
+                errorMessage_ = output;
             } else {
-                errorMessage_ = "ping failed with exit code " + std::to_string(status);
+                errorMessage_ = "command failed with exit code " + std::to_string(status);
             }
             return false;
         }
@@ -259,7 +262,17 @@ public:
     }
     
 private:
-    const std::string host_;
+    std::string command_;
+};
+
+
+class PingMonitor : public CommandMonitor {
+public:
+    PingMonitor(const std::string& host, TimeoutType timeout)
+        : CommandMonitor(timeout)
+    {
+        setCommand("ping -t " + std::to_string(timeout) + " -c 1 \"" + host + "\"");
+    }
 };
 
 class Server {
