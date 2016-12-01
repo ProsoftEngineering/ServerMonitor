@@ -1,10 +1,11 @@
 # About
 
-ServerMonitor is a C++11 command line program for determining if a server or a service on a server is available (up) or not (down). It can monitor using three methods:
+ServerMonitor is a C++11 command line program for determining if a server or a service on a server is available (up) or not (down). It can monitor using four methods:
 
 1. HTTP(s) - the server must output status 200 or redirect to a page that outputs status 200
 2. Port - the server must be listening on this port and accept a connection
 3. Ping - the server must respond to a ping
+4. Custom Command - a command can be run to provide custom logic to determine if a server is running. Exit code 0 is up, and anything else is down.
 
 ServerMonitor checks each server in parallel, so the total time to check all servers will only be as long as the slowest server, instead of the total of all monitor times.
 
@@ -22,7 +23,7 @@ There are only two command line arguments:
 
 # Examples
 
-To monitor Apple.com:
+To monitor Apple's website:
 
 ```json
 {
@@ -35,7 +36,7 @@ To monitor Apple.com:
 }
 ```
 
-To monitor GitHub SSH:
+To monitor GitHub's SSH port:
 
 ```json
 {
@@ -61,6 +62,20 @@ To monitor Google.com via ping:
   ]
 }
 ```
+
+To monitor via a custom command, for example SSH into a server and check for a file's existance:
+
+```json
+{
+  "servers": [
+    {
+      "name": "Google",
+      "cmd": "ssh my.server test -f myfile.txt"
+    }
+  ]
+}
+```
+
 # Actions
 
 Currently the above examples don't provide any type of notification of when a server is up or down. For this you must use the `actions` key. Currently only a command can be run.
