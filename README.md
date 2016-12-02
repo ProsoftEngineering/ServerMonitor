@@ -104,9 +104,9 @@ As used above, actions can use the following case-sensitive variables:
 | Variable   | Description    |
 | ---------- | -------------- |
 | {{name}}   | Server name    |
-| {{status}} | "up" or "down  |
+| {{status}} | "up" or "down" |
 | {{Status}} | "Up" or "Down" |
-| {{STATUS   | "UP" or "DOWN" |
+| {{STATUS}} | "UP" or "DOWN" |
 
 # Advanced Options
 
@@ -124,7 +124,7 @@ Example:
   "servers": [
     {
       "name": "Apple Website",
-      "url": "http://apple.com",
+      "url": "https://apple.com",
       "timeout": 30,
       "verifpeer": false
     }
