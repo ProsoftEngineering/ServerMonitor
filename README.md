@@ -168,8 +168,8 @@ Example for disabling peer verification for a single server:
 {
   "servers": [
     {
-      "name": "Apple Website",
-      "url": "http://apple.com",
+      "name": "Apple Secure Website",
+      "url": "https://apple.com",
       "verifpeer": false
     }
   ]
