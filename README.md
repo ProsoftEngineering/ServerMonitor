@@ -1,6 +1,6 @@
 # About
 
-ServerMonitor is a C++11 command line program for determining if a server or a service on a server is available (up) or not (down). It can monitor using four methods:
+ServerMonitor is a C++14 command line program for determining if a server or a service on a server is available (up) or not (down). It can monitor using four methods:
 
 1. HTTP(s) - the server must output status 200 or redirect to a page that outputs status 200
 2. Port - the server must be listening on this port and accept a connection
