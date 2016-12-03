@@ -152,7 +152,7 @@ Example for overriding the timeout for all servers to 30 seconds:
 
 ```json
 {
-  "timeout": 30
+  "timeout": 30,
   "servers": [
     {
       "name": "Apple Website",
