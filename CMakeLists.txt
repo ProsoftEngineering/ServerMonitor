@@ -6,7 +6,7 @@ add_subdirectory(vendor/tiny-process-library)
 add_executable(${PROJECT_NAME}
   src/main.cpp
   src/types.hpp
-  src/http_curl.cpp
+  src/curl.cpp
   src/curl.hpp
 )
 
