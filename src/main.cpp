@@ -15,13 +15,11 @@
 #include "json.hpp"
 #include "process.hpp"
 
+#include "curl.hpp"
+
 namespace {
 
     using json = nlohmann::json;
-
-    using TimeoutType = unsigned;
-    using DurationType = unsigned;
-    using PortType = unsigned;
 
     static const TimeoutType kDefaultTimeout = 5;
 
@@ -148,7 +146,6 @@ public:
     }
     
     virtual bool execute() override {
-        extern bool HttpHead(const std::string& url, TimeoutType timeout, std::string& errorMessage, bool verifypeer);
         return HttpHead(url_, timeout(), errorMessage_, verifypeer_);
     }
     
@@ -346,13 +343,23 @@ std::string replace_variables(const std::string& input, const Server& server) {
 
 class Action {
 public:
+    Action(TimeoutType timeout)
+        : timeout_(timeout)
+    {
+    }
+    TimeoutType timeout() const {
+        return timeout_;
+    }
     virtual void run(const Server& server) = 0;
+private:
+    TimeoutType timeout_;
 };
 
 class CommandAction : public Action {
 public:
-    CommandAction(const std::string& command)
-        : cmd_(command)
+    CommandAction(TimeoutType timeout, const std::string& command)
+        : Action(timeout)
+        , cmd_(command)
     {
     }
     
@@ -363,6 +370,25 @@ public:
     
 private:
     const std::string cmd_;
+};
+
+class EmailAction : public Action {
+public:
+    EmailAction(TimeoutType timeout, const EmailParams& params)
+        : Action(timeout)
+        , params_(params)
+    {
+    }
+    
+    virtual void run(const Server& server) override {
+        EmailParams params = params_;
+        params.subject = replace_variables(params.subject, server);
+        std::string errorMessage;
+        (void)Email(params, timeout(), errorMessage);
+    }
+
+private:
+    const EmailParams params_;
 };
 
 class ServerMonitor {
@@ -378,6 +404,12 @@ public:
         
         const auto config_end = config_.end();
         
+        TimeoutType global_timeout = kDefaultTimeout;
+        const auto global_timeout_iter = config_.find("timeout");
+        if (global_timeout_iter != config_end) {
+            global_timeout = global_timeout_iter->get<TimeoutType>();
+        }
+        
         using ActionPtr = std::unique_ptr<Action>;
         std::unordered_map<std::string, ActionPtr> actions;
         const auto actions_iter = config_.find("actions");
@@ -391,19 +423,39 @@ public:
                     
                     const auto cmd_iter = value.find("cmd");
                     if (cmd_iter != end) {
-                        actions[name] = std::make_unique<CommandAction>(cmd_iter.value().get<std::string>());
+                        actions[name] = std::make_unique<CommandAction>(global_timeout, cmd_iter.value().get<std::string>());
+                        continue;
+                    }
+                    
+                    const auto smtp_host_iter = value.find("smtp_host");
+                    const auto smtp_user_iter = value.find("smtp_user");
+                    const auto smtp_password_iter = value.find("smtp_password");
+                    const auto from_iter = value.find("from");
+                    const auto to_iter = value.find("to");
+                    const auto subject_iter = value.find("subject");
+                    const auto body_iter = value.find("body");
+                    if (smtp_host_iter != end &&
+                        smtp_user_iter != end &&
+                        smtp_password_iter != end &&
+                        from_iter != end &&
+                        to_iter != end &&
+                        subject_iter != end &&
+                        body_iter != end) {
+                        EmailParams params;
+                        params.smtp_host = smtp_host_iter.value().get<std::string>();
+                        params.smtp_user = smtp_user_iter.value().get<std::string>();
+                        params.smtp_password = smtp_password_iter.value().get<std::string>();
+                        params.from = from_iter.value().get<std::string>();
+                        params.to = to_iter.value().get<std::string>();
+                        params.subject = subject_iter.value().get<std::string>();
+                        params.body = body_iter.value().get<std::string>();
+                        actions[name] = std::make_unique<EmailAction>(global_timeout, params);
                         continue;
                     }
                     
                     throw std::runtime_error("Invalid action entry");
                 }
             }
-        }
-        
-        TimeoutType global_timeout = kDefaultTimeout;
-        const auto global_timeout_iter = config_.find("timeout");
-        if (global_timeout_iter != config_end) {
-            global_timeout = global_timeout_iter->get<TimeoutType>();
         }
         
         bool global_verifypeer = true;

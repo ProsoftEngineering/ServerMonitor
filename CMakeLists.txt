@@ -5,6 +5,9 @@ add_subdirectory(vendor/tiny-process-library)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
+  src/types.hpp
+  src/http_curl.cpp
+  src/curl.hpp
 )
 
 if(MSVC)
@@ -20,7 +23,6 @@ endif()
 find_package(CURL REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CURL_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CURL_INCLUDE_DIRS})
-target_sources(${PROJECT_NAME} PRIVATE src/http_curl.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   vendor/json/src
