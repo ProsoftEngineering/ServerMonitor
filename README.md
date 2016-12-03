@@ -155,7 +155,6 @@ Example for overriding the timeout for all servers to 30 seconds:
   "timeout": 30
   "servers": [
     {
-      ...
     }
   ]
 }
@@ -167,7 +166,6 @@ Example for disabling peer verification for a single server:
 {
   "servers": [
     {
-      ...
       "verifpeer": false
     }
   ]
