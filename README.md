@@ -78,9 +78,11 @@ To monitor via a custom command, for example SSH into a server and check for a f
 
 # Actions
 
-Currently the above examples don't provide any type of notification of when a server goes up or down. For this you must use the `actions` key. Currently only a command can be run.
+Currently the above examples don't provide any type of notification of when a server goes up or down. For this you must use the `actions` key. There are two types of actions: Command and Email:
 
-For example, to display a notification in macOS:
+## Command
+
+The most basic action is to run a command. For example, to display a notification in macOS:
 
 ```json
 {
@@ -98,6 +100,35 @@ For example, to display a notification in macOS:
   ]
 }
 ```
+
+## Email
+
+Emails can be sent using SMTP:
+
+```json
+{
+  "actions": {
+    "email": {
+      "smtp_host": "smtp.example.com:587",
+      "smtp_user": "user",
+      "smtp_password": "password",
+      "from": "servermonitor@example.com",
+      "to": "you@example.com",
+      "subject": "ServerMonitor: {{name}} is {{STATUS}}",
+      "body": ""
+    }
+  },
+  "servers": [
+    {
+      "name": "Apple Website",
+      "url": "http://apple.com",
+      "action": "email"
+    }
+  ]
+}
+```
+
+## Variables
 
 As used above, actions can use the following case-sensitive variables:
 
