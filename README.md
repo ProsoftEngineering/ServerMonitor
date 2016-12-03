@@ -148,24 +148,50 @@ Advanced options can be set at the root level (along side `actions` and `servers
 | timeout | Integer | The timeout in seconds to wait for a response. | 5 |
 | verifypeer | Boolean | Enable or disable CURL's [VERIFYPEER](https://curl.haxx.se/libcurl/c/CURLOPT_SSL_VERIFYPEER.html) option. Useful for websites with self-signed or expired SSL certificates. | true |
 
-Example:
+Example for overriding the timeout for all servers to 30 seconds:
+
+```json
+{
+  "timeout": 30
+  "servers": [
+    {
+      ...
+    }
+  ]
+}
+```
+
+Example for disabling peer verification for a single server:
 
 ```json
 {
   "servers": [
     {
-      "name": "Apple Website",
-      "url": "https://apple.com",
-      "timeout": 30,
+      ...
       "verifpeer": false
     }
   ]
 }
 ```
 
+# Building
+
+Dependencies:
+
+- [CMake](https://cmake.org) 3.1 or later
+- CURL
+
+First make sure you cloned recursively:
+
+    git clone --recursive https://github.com/kainjow/ServerMonitor.git
+
+Then run `make`.
+
 # Scheduling
 
-Here's an example launchd plist for macOS for running ServerMonitor every minute:
+Below are sample configurations for running ServerMonitor every minute.
+
+## Launchd
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -186,19 +212,10 @@ Here's an example launchd plist for macOS for running ServerMonitor every minute
 </plist>
 ```
 
-Or with cron:
+Save to `~/Library/LaunchAgents/com.kainjow.servermonitor.plist` and activate via:
+
+    launchctl load ~/Library/LaunchAgents/com.kainjow.servermonitor.plist
+
+## Cron
 
     * * * * * ~/ServerMonitor/ServerMonitor ~/ServerMonitor/config.json ~/ServerMonitor/status.json
-
-# Building
-
-Dependencies:
-
-- [CMake](https://cmake.org) 3.1 or later
-- CURL
-
-First make sure you cloned recursively:
-
-    git clone --recursive https://github.com/kainjow/ServerMonitor.git
-
-Then run `make`.
