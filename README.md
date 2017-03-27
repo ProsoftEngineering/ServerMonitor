@@ -185,7 +185,7 @@ Dependencies:
 
 First make sure you cloned recursively:
 
-    git clone --recursive https://github.com/kainjow/ServerMonitor.git
+    git clone --recursive https://github.com/ProsoftEngineering/ServerMonitor.git
 
 Then run `make`.
 
@@ -201,7 +201,7 @@ Below are sample configurations for running ServerMonitor every minute.
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.kainjow.servermonitor</string>
+	<string>com.prosofteng.servermonitor</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/Users/you/ServerMonitor/ServerMonitor</string>
@@ -214,9 +214,9 @@ Below are sample configurations for running ServerMonitor every minute.
 </plist>
 ```
 
-Save to `~/Library/LaunchAgents/com.kainjow.servermonitor.plist` and activate via:
+Save to `~/Library/LaunchAgents/com.prosofteng.servermonitor.plist` and activate via:
 
-    launchctl load ~/Library/LaunchAgents/com.kainjow.servermonitor.plist
+    launchctl load ~/Library/LaunchAgents/com.prosofteng.servermonitor.plist
 
 ## Cron
 
