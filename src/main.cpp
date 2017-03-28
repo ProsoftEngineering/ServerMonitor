@@ -23,12 +23,15 @@ namespace {
 
     static const TimeoutType kDefaultTimeout = 5;
 
-    json read_json_file(const std::string& path) {
+    json read_json_file(const std::string& path, bool required) {
         std::ifstream filestream(path);
-        if (!filestream.is_open()) {
-            throw std::runtime_error("Can't open config file");
-        }
         json data;
+        if (!filestream.is_open()) {
+            if (required) {
+                throw std::runtime_error("Can't open json file");
+            }
+            return data;
+        }
         filestream >> data;
         return data;
     }
@@ -400,7 +403,7 @@ public:
     }
     
     void run() {
-        const json status_prev{read_json_file(status_path_)};
+        const json status_prev{read_json_file(status_path_, false)};
         
         const auto config_end = config_.end();
         
@@ -602,7 +605,7 @@ int main(int argc, const char * argv[]) {
         const std::string config_path{argv[1]};
         const std::string status_path{argv[2]};
 
-        const json config{read_json_file(config_path)};
+        const json config{read_json_file(config_path, true)};
 
         ServerMonitor mon(config, status_path);
         mon.run();
