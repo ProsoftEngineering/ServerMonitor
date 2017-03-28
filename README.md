@@ -152,6 +152,7 @@ As used above, actions can use the following case-sensitive variables:
 | {{status}} | "up" or "down" |
 | {{Status}} | "Up" or "Down" |
 | {{STATUS}} | "UP" or "DOWN" |
+| {{error}} | Error message |
 
 # Advanced Options
 

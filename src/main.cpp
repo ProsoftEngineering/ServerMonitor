@@ -334,6 +334,7 @@ std::string replace_variables(const std::string& input, const Server& server) {
         {"status", server.result() ? "up" : "down"},
         {"Status", server.result() ? "Up" : "Down"},
         {"STATUS", server.result() ? "UP" : "DOWN"},
+        {"error", server.monitor()->errorMessage()},
     };
     for (const auto& item : map) {
         std::string what = "{{" + item.first + "}}";
@@ -387,6 +388,7 @@ public:
     virtual void run(const Server& server) override {
         EmailParams params = params_;
         params.subject = replace_variables(params.subject, server);
+        params.body = replace_variables(params.body, server);
         std::string errorMessage;
         (void)Email(params, timeout(), errorMessage);
     }
