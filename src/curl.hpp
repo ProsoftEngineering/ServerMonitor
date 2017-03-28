@@ -2,8 +2,15 @@
 #define KAINJOW_SERVERMONITOR_CURL_HPP
 
 #include "types.hpp"
+#include <string>
 
-bool HttpHead(const std::string& url, TimeoutType timeout, std::string& errorMessage, bool verifypeer);
+struct HttpParams {
+    std::string url;
+    TimeoutType timeout;
+    bool verifypeer;
+};
+
+bool HttpHead(const HttpParams& params, std::string& errorMessage);
 
 struct EmailParams {
     std::string smtp_host;

@@ -143,18 +143,18 @@ class WebsiteMonitor : public Monitor {
 public:
     WebsiteMonitor(const std::string& url, TimeoutType timeout, bool verifypeer)
         : Monitor(timeout)
-        , url_(url)
-        , verifypeer_(verifypeer)
     {
+        params_.url = url;
+        params_.verifypeer = verifypeer;
     }
     
     virtual bool execute() override {
-        return HttpHead(url_, timeout(), errorMessage_, verifypeer_);
+        params_.timeout = timeout();
+        return HttpHead(params_, errorMessage_);
     }
     
 private:
-    const std::string url_;
-    bool verifypeer_;
+    HttpParams params_;
 };
 
 class ServiceMonitor : public Monitor {
