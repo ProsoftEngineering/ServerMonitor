@@ -563,7 +563,7 @@ public:
         
         for (const auto& server : servers) {
             const auto& monitor = server.monitor();
-            const auto name = server.name();
+            const auto& name = server.name();
             const bool result = server.result();
             if (result) {
                 std::cout << name << ": UP";
@@ -572,19 +572,30 @@ public:
             }
             std::cout << " (" << monitor->duration() << " ms)" << std::endl;
             json server_info;
+            server_info["name"] = name;
             server_info["status"] = result;
             if (!result) {
                 server_info["error"] = monitor->errorMessage();
             }
-            status[name] = server_info;
+            status.push_back(server_info);
             
-            const auto status_prev_it = status_prev.find(name);
-            if (status_prev_it != status_prev.end() && status_prev_it->is_boolean() && status_prev_it->get<bool>() != result) {
-                std::cout << "  Handle " << (result ? "UP" : "DOWN") << std::endl;
-                if (!server.action().empty()) {
-                    const auto action_iter = actions.find(server.action());
-                    if (action_iter != actions.end()) {
-                        action_iter->second->run(server);
+            const auto& status_prev_it = std::find_if(status_prev.begin(), status_prev.end(), [&name](const json& obj) {
+                return obj["name"] == name;
+            });
+            if (status_prev_it != status_prev.end()) {
+                if (!status_prev_it->is_object()) {
+                    std::cout << "WARNING: Invalid status JSON element for \"" << name << "\"" << std::endl;
+                    continue;
+                }
+                const auto& json_obj = *status_prev_it;
+                const auto& json_status = json_obj.find("status");
+                if (json_status != json_obj.end() && json_status->get<bool>() != result) {
+                    std::cout << "  Handle " << (result ? "UP" : "DOWN") << std::endl;
+                    if (!server.action().empty()) {
+                        const auto action_iter = actions.find(server.action());
+                        if (action_iter != actions.end()) {
+                            action_iter->second->run(server);
+                        }
                     }
                 }
             }

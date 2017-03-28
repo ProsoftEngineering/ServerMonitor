@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   </head>
   <body>
+
     <div class="container">
       <h1>Server Monitor</h1>
       <table class="table table-bordered table-condensed">
@@ -27,8 +28,13 @@
     <script>
     $.getJSON('status.json', function(data) {
       var table = $('table');
-      $.each(data, function(key, info) {
-        var name_td = $('<td></td>').text(key);
+      var dataSorted = data.sort(function(a, b) {
+        var a_status = a['status'];
+        var b_status = b['status'];
+        return a_status == b_status ? 0 : (a_status ? 1 : -1);
+      });
+      $.each(dataSorted, function(index, info) {
+        var name_td = $('<td></td>').text(info['name']);
         var value = info['status'];
         var status_td = $('<td></td>').text(value ? 'Up' : info['error']);
         var tr = $('<tr></tr>').append(name_td, status_td);
