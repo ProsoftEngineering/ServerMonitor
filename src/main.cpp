@@ -23,6 +23,7 @@ namespace {
     using json = nlohmann::json;
 
     static const TimeoutType kDefaultTimeout = 5;
+    static const std::string kDefaultDateFormat = "%Y-%m-%d %I:%M:%S %p";
 
     json read_json_file(const std::string& path, bool required) {
         std::ifstream filestream(path);
@@ -81,6 +82,19 @@ namespace {
         std::string stdout_;
         std::string stderr_;
     };
+
+    std::string replace_variables(const std::string& input, const std::unordered_map<std::string, std::string>& values) {
+        std::string str{input};
+        for (const auto& item : values) {
+            std::string what = "{{" + item.first + "}}";
+            std::string::size_type pos;
+            while ((pos = str.find(what)) != std::string::npos) {
+                str.replace(pos, what.size(), item.second);
+            }
+        }
+        return str;
+    }
+
 }
 
 class ElapsedTime {
@@ -294,8 +308,9 @@ class Server {
 public:
     using MonitorPtr = std::unique_ptr<Monitor>;
     
-    Server(const std::string& name, MonitorPtr monitor, const std::string& action)
+    Server(const std::string& name, const std::string& date_format, MonitorPtr monitor, const std::string& action)
         : name_(name)
+        , date_format_(date_format)
         , monitor_(std::move(monitor))
         , action_(action)
         , result_(false)
@@ -322,6 +337,20 @@ public:
         return result_;
     }
     
+    std::string replace_variables(const std::string& input) const {
+        char timebuf[100];
+        std::strftime(timebuf, sizeof(timebuf), date_format_.c_str(), std::localtime(&monitor()->time()));
+        const std::unordered_map<std::string, std::string> map{
+            {"name", name()},
+            {"status", result() ? "up" : "down"},
+            {"Status", result() ? "Up" : "Down"},
+            {"STATUS", result() ? "UP" : "DOWN"},
+            {"error", monitor()->errorMessage()},
+            {"date", timebuf},
+        };
+        return ::replace_variables(input, map);
+    }
+
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
     
@@ -330,36 +359,11 @@ public:
 
 private:
     std::string name_;
+    std::string date_format_;
     MonitorPtr monitor_;
     std::string action_;
     bool result_;
 };
-
-std::string replace_variables(const std::string& input, const std::unordered_map<std::string, std::string>& values) {
-    std::string str{input};
-    for (const auto& item : values) {
-        std::string what = "{{" + item.first + "}}";
-        std::string::size_type pos;
-        while ((pos = str.find(what)) != std::string::npos) {
-            str.replace(pos, what.size(), item.second);
-        }
-    }
-    return str;
-}
-
-std::string replace_variables(const std::string& input, const Server& server) {
-    char timebuf[100];
-    std::strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %I:%M:%S %p", std::localtime(&server.monitor()->time()));
-    const std::unordered_map<std::string, std::string> map{
-        {"name", server.name()},
-        {"status", server.result() ? "up" : "down"},
-        {"Status", server.result() ? "Up" : "Down"},
-        {"STATUS", server.result() ? "UP" : "DOWN"},
-        {"error", server.monitor()->errorMessage()},
-        {"date", timebuf},
-    };
-    return replace_variables(input, map);
-}
 
 class Action {
 public:
@@ -384,7 +388,7 @@ public:
     }
     
     virtual void run(const Server& server) override {
-        Task task{replace_variables(cmd_, server)};
+        Task task{server.replace_variables(cmd_)};
         (void)task.run();
     }
     
@@ -418,8 +422,8 @@ public:
         params.smtp_password = params_.smtp_password;
         params.from = params_.from;
         params.to = params_.to;
-        params.subject = replace_variables(params_.subject, server);
-        params.body = replace_variables(server.result() ? params_.body_up : params_.body_down, server);
+        params.subject = server.replace_variables(params_.subject);
+        params.body = server.replace_variables(server.result() ? params_.body_up : params_.body_down);
         std::string errorMessage;
         (void)Email(params, timeout(), errorMessage);
     }
@@ -445,6 +449,12 @@ public:
         const auto global_timeout_iter = config_.find("timeout");
         if (global_timeout_iter != config_end) {
             global_timeout = global_timeout_iter->get<TimeoutType>();
+        }
+        
+        std::string global_date_format = kDefaultDateFormat;
+        const auto global_date_format_iter = config_.find("date_format");
+        if (global_date_format_iter != config_end) {
+            global_date_format = global_date_format_iter->get<std::string>();
         }
         
         using ActionPtr = std::unique_ptr<Action>;
@@ -546,31 +556,31 @@ public:
                     throw std::runtime_error("Unknown action \"" + action + "\"");
                 }
             }
-
+            
             const auto url = server.find("url");
             if (url != end) {
                 const auto httpStatus = server.find("httpStatus");
                 int status = httpStatus != end ? httpStatus->get<int>() : 200;
-                servers.emplace_back(name, std::make_unique<WebsiteMonitor>(url->get<std::string>(), status, timeout, verifypeer), action);
+                servers.emplace_back(name, global_date_format, std::make_unique<WebsiteMonitor>(url->get<std::string>(), status, timeout, verifypeer), action);
                 continue;
             }
             
             const auto host = server.find("host");
             const auto port = server.find("port");
             if (host != end && port != end) {
-                servers.emplace_back(name, std::make_unique<ServiceMonitor>(host->get<std::string>(), port->get<PortType>(), timeout), action);
+                servers.emplace_back(name, global_date_format, std::make_unique<ServiceMonitor>(host->get<std::string>(), port->get<PortType>(), timeout), action);
                 continue;
             }
             
             const auto ping_host = server.find("ping");
             if (ping_host != end) {
-                servers.emplace_back(name, std::make_unique<PingMonitor>(ping_host->get<std::string>(), timeout), action);
+                servers.emplace_back(name, global_date_format, std::make_unique<PingMonitor>(ping_host->get<std::string>(), timeout), action);
                 continue;
             }
             
             const auto cmd = server.find("cmd");
             if (cmd != end) {
-                servers.emplace_back(name, std::make_unique<CommandMonitor>(cmd->get<std::string>(), timeout), action);
+                servers.emplace_back(name, global_date_format, std::make_unique<CommandMonitor>(cmd->get<std::string>(), timeout), action);
                 continue;
             }
             
