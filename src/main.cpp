@@ -626,6 +626,7 @@ public:
             if (!result) {
                 server_info["error"] = monitor->errorMessage();
             }
+            server_info["time"] = monitor->time();
             status.push_back(server_info);
             
             const auto& status_prev_it = std::find_if(status_prev.begin(), status_prev.end(), [&name](const json& obj) {

@@ -18,12 +18,16 @@
         <tr>
           <th>Name</th>
           <th>Status</th>
+          <th>Date</th>
         </tr>
       </table>
     </div>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    
+    <!-- Moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
     
     <script>
     $.getJSON('status.json', function(data) {
@@ -37,7 +41,8 @@
         var name_td = $('<td></td>').text(info['name']);
         var value = info['status'];
         var status_td = $('<td></td>').text(value ? 'Up' : info['error']);
-        var tr = $('<tr></tr>').append(name_td, status_td);
+        var time_td = $('<td></td>').text(moment(info['time'], 'X').fromNow());
+        var tr = $('<tr></tr>').append(name_td, status_td, time_td);
         tr.addClass(value ? 'success' : 'danger');
         table.append(tr);
       });
