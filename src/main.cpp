@@ -25,17 +25,13 @@ namespace {
     static const TimeoutType kDefaultTimeout = 5;
     static const std::string kDefaultDateFormat = "%Y-%m-%d %I:%M:%S %p";
 
-    json read_json_file(const std::string& path, bool required) {
-        std::ifstream filestream(path);
-        json data;
-        if (!filestream.is_open()) {
-            if (required) {
-                throw std::runtime_error("Can't open json file");
-            }
-            return data;
+    void read_json_file(const std::string& path, json& outJson) {
+        try {
+            std::ifstream filestream(path);
+            filestream >> outJson;
+        } catch (...) {
+            outJson = {};
         }
-        filestream >> data;
-        return data;
     }
 
     template <typename StringType>
@@ -442,7 +438,8 @@ public:
     }
     
     void run() {
-        const json status_prev{read_json_file(status_path_, false)};
+        json status_prev;
+        read_json_file(status_path_, status_prev);
         
         const auto config_end = config_.end();
         
@@ -671,7 +668,11 @@ int main(int argc, const char * argv[]) {
         const std::string config_path{argv[1]};
         const std::string status_path{argv[2]};
 
-        const json config{read_json_file(config_path, true)};
+        json config;
+        read_json_file(config_path, config);
+        if (!config.is_object()) {
+            throw std::runtime_error("Configuration JSON must be an object.");
+        }
 
         ServerMonitor mon(config, status_path);
         mon.run();
