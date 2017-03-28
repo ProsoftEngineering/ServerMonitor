@@ -132,7 +132,7 @@ public:
         return elapsedTime_.duration();
     }
     
-    std::time_t time() const {
+    const std::time_t& time() const {
         return time_;
     }
     
@@ -349,8 +349,7 @@ std::string replace_variables(const std::string& input, const std::unordered_map
 
 std::string replace_variables(const std::string& input, const Server& server) {
     char timebuf[100];
-    const std::time_t t = server.monitor()->time();
-    std::strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %I:%M:%S %p", std::localtime(&t));
+    std::strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %I:%M:%S %p", std::localtime(&server.monitor()->time()));
     const std::unordered_map<std::string, std::string> map{
         {"name", server.name()},
         {"status", server.result() ? "up" : "down"},
