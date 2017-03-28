@@ -334,16 +334,21 @@ public:
         return result_;
     }
     
-    std::string replace_variables(const std::string& input) const {
+    std::string monitorTimeString() const {
         char timebuf[100];
+        std::memset(timebuf, 0, sizeof(timebuf));
         std::strftime(timebuf, sizeof(timebuf), date_format_.c_str(), std::localtime(&monitor()->time()));
+        return timebuf;
+    }
+    
+    std::string replace_variables(const std::string& input) const {
         const std::unordered_map<std::string, std::string> map{
             {"name", name()},
             {"status", result() ? "up" : "down"},
             {"Status", result() ? "Up" : "Down"},
             {"STATUS", result() ? "UP" : "DOWN"},
             {"error", monitor()->errorMessage()},
-            {"date", timebuf},
+            {"date", monitorTimeString()},
         };
         return ::replace_variables(input, map);
     }
