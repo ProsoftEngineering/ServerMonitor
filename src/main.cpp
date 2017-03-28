@@ -335,8 +335,19 @@ private:
     bool result_;
 };
 
-std::string replace_variables(const std::string& input, const Server& server) {
+std::string replace_variables(const std::string& input, const std::unordered_map<std::string, std::string>& values) {
     std::string str{input};
+    for (const auto& item : values) {
+        std::string what = "{{" + item.first + "}}";
+        std::string::size_type pos;
+        while ((pos = str.find(what)) != std::string::npos) {
+            str.replace(pos, what.size(), item.second);
+        }
+    }
+    return str;
+}
+
+std::string replace_variables(const std::string& input, const Server& server) {
     char timebuf[100];
     const std::time_t t = server.monitor()->time();
     std::strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %I:%M:%S %p", std::localtime(&t));
@@ -348,14 +359,7 @@ std::string replace_variables(const std::string& input, const Server& server) {
         {"error", server.monitor()->errorMessage()},
         {"date", timebuf},
     };
-    for (const auto& item : map) {
-        std::string what = "{{" + item.first + "}}";
-        std::string::size_type pos;
-        while ((pos = str.find(what)) != std::string::npos) {
-            str.replace(pos, what.size(), item.second);
-        }
-    }
-    return str;
+    return replace_variables(input, map);
 }
 
 class Action {
