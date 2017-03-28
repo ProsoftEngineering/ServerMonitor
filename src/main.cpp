@@ -1,4 +1,5 @@
 #include <chrono>
+#include <ctime>
 #include <future>
 #include <iostream>
 #include <fstream>
@@ -107,10 +108,12 @@ class Monitor {
 public:
     Monitor(TimeoutType timeout)
         : timeout_(timeout)
+        , time_(0)
     {
     }
     
     bool run() {
+        time_ = std::time(nullptr);
         elapsedTime_.start();
         const bool result = execute();
         elapsedTime_.stop();
@@ -129,6 +132,10 @@ public:
         return elapsedTime_.duration();
     }
     
+    std::time_t time() const {
+        return time_;
+    }
+    
 protected:
     virtual bool execute() = 0;
     
@@ -137,6 +144,7 @@ protected:
 private:
     const TimeoutType timeout_;
     ElapsedTime elapsedTime_;
+    std::time_t time_;
 };
 
 class WebsiteMonitor : public Monitor {
@@ -329,12 +337,16 @@ private:
 
 std::string replace_variables(const std::string& input, const Server& server) {
     std::string str{input};
+    char timebuf[100];
+    const std::time_t t = server.monitor()->time();
+    std::strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %I:%M:%S %p", std::localtime(&t));
     const std::unordered_map<std::string, std::string> map{
         {"name", server.name()},
         {"status", server.result() ? "up" : "down"},
         {"Status", server.result() ? "Up" : "Down"},
         {"STATUS", server.result() ? "UP" : "DOWN"},
         {"error", server.monitor()->errorMessage()},
+        {"date", timebuf},
     };
     for (const auto& item : map) {
         std::string what = "{{" + item.first + "}}";

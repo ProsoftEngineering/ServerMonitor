@@ -129,8 +129,8 @@ Emails can be sent using SMTP:
       "from": "servermonitor@example.com",
       "to": "you@example.com",
       "subject": "ServerMonitor: {{name}} is {{STATUS}}",
-      "body_down": "Error: {{error}}",
-      "body_up": ""
+      "body_down": "Error: {{error}}\nDate: {{date}}\n",
+      "body_up": "Date: {{date}}\n"
     }
   },
   "servers": [
@@ -156,6 +156,7 @@ As used above, actions can use the following case-sensitive variables:
 | {{Status}} | "Up" or "Down" |
 | {{STATUS}} | "UP" or "DOWN" |
 | {{error}} | Error message |
+| {{date}} | Date when monitor started |
 
 # Advanced Options
 
