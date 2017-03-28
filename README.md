@@ -166,7 +166,7 @@ Advanced options can be set at the root level (along side `actions` and `servers
 | --- | --- | --- | --- |
 | timeout | Integer | The timeout in seconds to wait for a response. | `5` |
 | verifypeer | Boolean | Enable or disable CURL's [VERIFYPEER](https://curl.haxx.se/libcurl/c/CURLOPT_SSL_VERIFYPEER.html) option. Useful for websites with self-signed or expired SSL certificates. | `true` |
-| date_format | String | The format used for dates (global only) | `%Y-%m-%d %I:%M:%S %p` |
+| date_format | String | The format used for dates (global only). See [strftime](http://en.cppreference.com/w/cpp/chrono/c/strftime). | `%Y-%m-%d %I:%M:%S %p` |
 
 Example for overriding the timeout for all servers to 30 seconds:
 
