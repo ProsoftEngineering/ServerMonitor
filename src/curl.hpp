@@ -1,5 +1,4 @@
-#ifndef KAINJOW_SERVERMONITOR_CURL_HPP
-#define KAINJOW_SERVERMONITOR_CURL_HPP
+#pragma once
 
 #include "types.hpp"
 #include <string>
@@ -24,5 +23,3 @@ struct EmailParams {
 };
 
 bool Email(const EmailParams& params, TimeoutType timeout, std::string& errorMessage);
-
-#endif
