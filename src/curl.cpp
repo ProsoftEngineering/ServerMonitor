@@ -1,3 +1,4 @@
+#include "curl.hpp"
 #include <curl/curl.h>
 #include <string>
 #include <iostream>
@@ -91,16 +92,6 @@ size_t EmailHelper::payload_source(void *ptr, size_t size, size_t nmemb)
     ++lines_read;
     return len;
 }
-
-struct EmailParams {
-    std::string smtp_host;
-    std::string smtp_user;
-    std::string smtp_password;
-    std::string from;
-    std::string to;
-    std::string subject;
-    std::string body;
-};
 
 bool Email(const EmailParams& params, unsigned timeout, std::string& errorMessage) {
     CURLHandle handle;
