@@ -379,22 +379,38 @@ private:
 
 class EmailAction : public Action {
 public:
-    EmailAction(TimeoutType timeout, const EmailParams& params)
+    struct Params {
+        std::string smtp_host;
+        std::string smtp_user;
+        std::string smtp_password;
+        std::string from;
+        std::string to;
+        std::string subject;
+        std::string body_down;
+        std::string body_up;
+    };
+
+    EmailAction(TimeoutType timeout, const Params& params)
         : Action(timeout)
         , params_(params)
     {
     }
     
     virtual void run(const Server& server) override {
-        EmailParams params = params_;
-        params.subject = replace_variables(params.subject, server);
-        params.body = replace_variables(params.body, server);
+        EmailParams params;
+        params.smtp_host = params_.smtp_host;
+        params.smtp_user = params_.smtp_user;
+        params.smtp_password = params_.smtp_password;
+        params.from = params_.from;
+        params.to = params_.to;
+        params.subject = replace_variables(params_.subject, server);
+        params.body = replace_variables(server.result() ? params_.body_up : params_.body_down, server);
         std::string errorMessage;
         (void)Email(params, timeout(), errorMessage);
     }
 
 private:
-    const EmailParams params_;
+    const Params params_;
 };
 
 class ServerMonitor {
@@ -439,22 +455,25 @@ public:
                     const auto from_iter = value.find("from");
                     const auto to_iter = value.find("to");
                     const auto subject_iter = value.find("subject");
-                    const auto body_iter = value.find("body");
+                    const auto body_down_iter = value.find("body_down");
+                    const auto body_up_iter = value.find("body_up");
                     if (smtp_host_iter != end &&
                         smtp_user_iter != end &&
                         smtp_password_iter != end &&
                         from_iter != end &&
                         to_iter != end &&
                         subject_iter != end &&
-                        body_iter != end) {
-                        EmailParams params;
+                        body_down_iter != end &&
+                        body_up_iter != end) {
+                        EmailAction::Params params;
                         params.smtp_host = smtp_host_iter.value().get<std::string>();
                         params.smtp_user = smtp_user_iter.value().get<std::string>();
                         params.smtp_password = smtp_password_iter.value().get<std::string>();
                         params.from = from_iter.value().get<std::string>();
                         params.to = to_iter.value().get<std::string>();
                         params.subject = subject_iter.value().get<std::string>();
-                        params.body = body_iter.value().get<std::string>();
+                        params.body_down = body_down_iter.value().get<std::string>();
+                        params.body_up = body_up_iter.value().get<std::string>();
                         actions[name] = std::make_unique<EmailAction>(global_timeout, params);
                         continue;
                     }

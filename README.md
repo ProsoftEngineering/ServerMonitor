@@ -129,7 +129,8 @@ Emails can be sent using SMTP:
       "from": "servermonitor@example.com",
       "to": "you@example.com",
       "subject": "ServerMonitor: {{name}} is {{STATUS}}",
-      "body": ""
+      "body_down": "Error: {{error}}",
+      "body_up": ""
     }
   },
   "servers": [
@@ -141,6 +142,8 @@ Emails can be sent using SMTP:
   ]
 }
 ```
+
+`body_down` and `body_up` are used to separate the body message for when a server is up or down.
 
 ## Variables
 
