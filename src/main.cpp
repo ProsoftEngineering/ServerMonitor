@@ -190,7 +190,8 @@ public:
     }
     
     virtual bool execute() override {
-        struct ::addrinfo hints = {};
+        struct ::addrinfo hints;
+        std::memset(&hints, 0, sizeof(hints));
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
         
