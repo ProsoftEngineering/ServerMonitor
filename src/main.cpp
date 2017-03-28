@@ -568,7 +568,12 @@ public:
                 std::cout << name << ": DOWN - " << monitor->errorMessage();
             }
             std::cout << " (" << monitor->duration() << " ms)" << std::endl;
-            status[name] = result;
+            json server_info;
+            server_info["status"] = result;
+            if (!result) {
+                server_info["error"] = monitor->errorMessage();
+            }
+            status[name] = server_info;
             
             const auto status_prev_it = status_prev.find(name);
             if (status_prev_it != status_prev.end() && status_prev_it->is_boolean() && status_prev_it->get<bool>() != result) {

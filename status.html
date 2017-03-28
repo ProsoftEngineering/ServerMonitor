@@ -27,9 +27,10 @@
     <script>
     $.getJSON('status.json', function(data) {
       var table = $('table');
-      $.each(data, function(key, value) {
+      $.each(data, function(key, info) {
         var name_td = $('<td></td>').text(key);
-        var status_td = $('<td></td>').text(value ? 'Up' : 'Down');
+        var value = info['status'];
+        var status_td = $('<td></td>').text(value ? 'Up' : info['error']);
         var tr = $('<tr></tr>').append(name_td, status_td);
         tr.addClass(value ? 'success' : 'danger');
         table.append(tr);
