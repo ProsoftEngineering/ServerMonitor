@@ -2,7 +2,7 @@
 
 ServerMonitor is a C++14 command line program for determining if a server or a service on a server is available (up) or not (down). It can monitor using four methods:
 
-1. HTTP(s) - the server must output status 200 or redirect to a page that outputs status 200
+1. HTTP(s) - the server must respond or redirect with a 200 status (see example below to customize)
 2. Port - the server must be listening on this port and accept a connection
 3. Ping - the server must respond to a ping
 4. Custom Command - a command can be run to provide custom logic to determine if a server is running. Exit code 0 is up, and anything else is down.
@@ -71,6 +71,20 @@ To monitor via a custom command, for example SSH into a server and check for a f
     {
       "name": "My Server",
       "cmd": "ssh my.server test -f myfile.txt"
+    }
+  ]
+}
+```
+
+To monitor a website with a custom HTTP status other than 200:
+
+```json
+{
+  "servers": [
+    {
+      "name": "My Login Page",
+      "url": "http://example.com",
+      "httpStatus": 401
     }
   ]
 }

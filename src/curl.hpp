@@ -6,6 +6,7 @@
 
 struct HttpParams {
     std::string url;
+    int status; // expected HTTP status, usually 200
     TimeoutType timeout;
     bool verifypeer;
 };

@@ -141,10 +141,11 @@ private:
 
 class WebsiteMonitor : public Monitor {
 public:
-    WebsiteMonitor(const std::string& url, TimeoutType timeout, bool verifypeer)
+    WebsiteMonitor(const std::string& url, int httpStatus, TimeoutType timeout, bool verifypeer)
         : Monitor(timeout)
     {
         params_.url = url;
+        params_.status = httpStatus;
         params_.verifypeer = verifypeer;
     }
     
@@ -512,7 +513,9 @@ public:
 
             const auto url = server.find("url");
             if (url != end) {
-                servers.emplace_back(name, std::make_unique<WebsiteMonitor>(url->get<std::string>(), timeout, verifypeer), action);
+                const auto httpStatus = server.find("httpStatus");
+                int status = httpStatus != end ? httpStatus->get<int>() : 200;
+                servers.emplace_back(name, std::make_unique<WebsiteMonitor>(url->get<std::string>(), status, timeout, verifypeer), action);
                 continue;
             }
             

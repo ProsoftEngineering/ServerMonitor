@@ -60,7 +60,7 @@ bool HttpHead(const HttpParams& params, std::string& errorMessage) {
     HANDLE_CURL_CODE(::curl_easy_perform(handle.value));
     long http_code = 0;
     HANDLE_CURL_CODE(curl_easy_getinfo(handle.value, ::CURLINFO_RESPONSE_CODE, &http_code));
-    if (http_code != 200) {
+    if (http_code != params.status) {
         errorMessage = "HTTP response code: " + std::to_string(http_code);
         return false;
     }
