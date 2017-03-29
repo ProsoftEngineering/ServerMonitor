@@ -3,6 +3,17 @@
 #include "types.hpp"
 #include <string>
 
+struct CurlGlobal {
+    CurlGlobal();
+    ~CurlGlobal();
+
+    CurlGlobal(const CurlGlobal&) = delete;
+    CurlGlobal& operator=(const CurlGlobal&) = delete;
+    
+    CurlGlobal(CurlGlobal&& other) = delete;
+    CurlGlobal& operator=(CurlGlobal&&) = delete;
+};
+
 struct HttpParams {
     std::string url;
     int status; // expected HTTP status, usually 200

@@ -44,6 +44,19 @@ namespace {
     };
 }
 
+CurlGlobal::CurlGlobal()
+{
+    const ::CURLcode code = ::curl_global_init(CURL_GLOBAL_ALL);
+    if (code != ::CURLE_OK) {
+        throw std::string("CURL global init failed: ") + ::curl_easy_strerror(code); \
+    }
+}
+
+CurlGlobal::~CurlGlobal()
+{
+    ::curl_global_cleanup();
+}
+
 bool HttpHead(const HttpParams& params, std::string& errorMessage) {
     CURLHandle handle;
     handle.value = ::curl_easy_init();

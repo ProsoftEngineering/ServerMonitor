@@ -680,6 +680,7 @@ int main(int argc, const char * argv[]) {
             throw std::runtime_error("Configuration JSON must be an object.");
         }
 
+        CurlGlobal curlGlobal;
         ServerMonitor mon(config, status_path);
         mon.run();
 
