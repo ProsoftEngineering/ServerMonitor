@@ -240,11 +240,27 @@ public:
         if (retval == -1) {
             errorMessage_ = "Select failed: " + std::string(::strerror(errno));
             return false;
-        } else if (retval) {
-            return FD_ISSET(socket.value, &rfds) != 0;
+        } else if (retval == 0) {
+            errorMessage_ = "Timed out";
+            return false;
+        } else if (retval == 1) {
+            if (FD_ISSET(socket.value, &rfds)) {
+                int err = 0;
+                socklen_t errlen = sizeof(err);
+                if (::getsockopt(socket.value, SOL_SOCKET, SO_ERROR, &err, &errlen) == 0) {
+                    if (err == 0) {
+                        return true;
+                    } else {
+                        errorMessage_ = "Socket connect error: " + std::string(::strerror(err));
+                        return false;
+                    }
+                } else {
+                    errorMessage_ = "getsockopt failed: " + std::string(::strerror(errno));
+                    return false;
+                }
+            }
         }
-        
-        errorMessage_ = "Timed out";
+        errorMessage_ = "Unknown error";
         return false;
     }
 
